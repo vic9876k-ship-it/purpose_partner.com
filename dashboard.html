@@ -8,14 +8,23 @@
     <link rel="apple-touch-icon" href="icons/icon-512.png">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Firebase setup -->
-    <script type="module" src="./firebase-config.js"></script>
     <script type="module">
-        import { initFirebase } from './firebase-config.js';
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-        let firebaseApp;
-        let auth;
-        let db;
+        const firebaseConfig = {
+            apiKey: "AIzaSyC4HhpXcYdGhvFRIz4IHksilgnMnRDbiS8",
+            authDomain: "victory-fb944.firebaseapp.com",
+            projectId: "victory-fb944",
+            storageBucket: "victory-fb944.firebasestorage.app",
+            messagingSenderId: "650310438797",
+            appId: "1:650310438797:web:c0bd9a1caaa6093d5137c4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
         document.addEventListener('DOMContentLoaded', async () => {
             // Check sessionStorage first before Firebase init
@@ -25,32 +34,18 @@
                 return;
             }
 
-            try {
-                const initialized = await initFirebase();
-                firebaseApp = initialized.app;
-                auth = initialized.auth;
-                db = initialized.db;
+            onAuthStateChanged(auth, async (user) => {
+                if (!user) {
+                    window.location.href = 'login.html';
+                    return;
+                }
 
-                setupAuthListener();
-            } catch (error) {
-                console.error('Failed to initialize Firebase for dashboard:', error);
-            }
-        });
-
-        function setupAuthListener() {
-            import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js').then(({ onAuthStateChanged }) => {
-                onAuthStateChanged(auth, async (user) => {
-                    if (!user) {
-                        window.location.href = 'login.html';
-                        return;
-                    }
-
-                    const userData = await loadDashboardData(user);
-                    updateHeaderUser(user, userData);
-                    listenForNotifications(user);
-                });
+                console.log("User logged in:", user.email);
+                const userData = await loadDashboardData(user);
+                updateHeaderUser(user, userData);
+                listenForNotifications(user);
             });
-        }
+        });
 
         function updateHeaderUser(user, userData) {
             const displayName = userData?.displayName || user.displayName || user.email || 'Partner';
