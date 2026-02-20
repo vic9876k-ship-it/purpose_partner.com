@@ -11,7 +11,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-        import { getFirestore } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, getDocs, collection, where, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyC4HhpXcYdGhvFRIz4IHksilgnMnRDbiS8",
@@ -62,8 +62,8 @@
 
         async function loadDashboardData(user) {
             try {
-                const userRef = window.firestore.doc(db, 'users', user.uid);
-                const userSnap = await window.firestore.getDoc(userRef);
+                const userRef = doc(db, 'users', user.uid);
+                const userSnap = await getDoc(userRef);
 
                 if (!userSnap.exists()) {
                     console.warn('No Firestore document for user yet.');
@@ -118,7 +118,7 @@
             }
 
             const partnerPromises = partnerIds.map((partnerId) =>
-                window.firestore.getDoc(window.firestore.doc(db, 'users', partnerId))
+                getDoc(doc(db, 'users', partnerId))
             );
 
             const partnerSnapshots = await Promise.all(partnerPromises);
@@ -161,14 +161,14 @@
             listContainer.id = 'activity-list';
 
             try {
-                const activityQuery = window.firestore.query(
-                    window.firestore.collection(db, 'activities'),
-                    window.firestore.where('userId', '==', userId),
-                    window.firestore.orderBy('timestamp', 'desc'),
-                    window.firestore.limit(10)
+                const activityQuery = query(
+                    collection(db, 'activities'),
+                    where('userId', '==', userId),
+                    orderBy('timestamp', 'desc'),
+                    limit(10)
                 );
 
-                const snapshot = await window.firestore.getDocs(activityQuery);
+                const snapshot = await getDocs(activityQuery);
 
                 if (snapshot.empty) {
                     renderEmptyActivity();
@@ -246,12 +246,12 @@
         }
 
         function listenForNotifications(user) {
-            const notificationsRef = window.firestore.query(
-                window.firestore.collection(db, 'notifications'),
-                window.firestore.where('partnerIds', 'array-contains', user.uid)
+            const notificationsRef = query(
+                collection(db, 'notifications'),
+                where('partnerIds', 'array-contains', user.uid)
             );
 
-            window.firestore.onSnapshot(notificationsRef, (snapshot) => {
+            onSnapshot(notificationsRef, (snapshot) => {
                 snapshot.docChanges().forEach((change) => {
                     if (change.type === 'added') {
                         const notification = change.doc.data();
