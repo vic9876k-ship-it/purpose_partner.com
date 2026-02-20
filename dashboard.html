@@ -38,15 +38,17 @@
         });
 
         function setupAuthListener() {
-            auth.onAuthStateChanged(async (user) => {
-                if (!user) {
-                    window.location.href = 'login.html';
-                    return;
-                }
+            import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js').then(({ onAuthStateChanged }) => {
+                onAuthStateChanged(auth, async (user) => {
+                    if (!user) {
+                        window.location.href = 'login.html';
+                        return;
+                    }
 
-                const userData = await loadDashboardData(user);
-                updateHeaderUser(user, userData);
-                listenForNotifications(user);
+                    const userData = await loadDashboardData(user);
+                    updateHeaderUser(user, userData);
+                    listenForNotifications(user);
+                });
             });
         }
 
