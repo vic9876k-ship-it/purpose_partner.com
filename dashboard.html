@@ -1273,24 +1273,6 @@ class LocalAuth {
     }
 }
 
-// Use Firebase Auth for dashboard
-window.firebaseAuth.onAuthStateChanged(window.auth, (user) => {
-    if (!user) {
-        window.location.href = 'login.html';
-        return;
-    }
-    
-    // Update UI with user info
-    document.getElementById('user-name').textContent = user.displayName || user.email;
-    document.getElementById('user-avatar').textContent = (user.displayName || user.email).charAt(0).toUpperCase();
-    document.getElementById('welcome-name').textContent = user.displayName || 'Partner';
-    
-    // Load user data
-    loadDashboardData(user);
-
-    // Listen for real-time notifications from extension
-    listenForNotifications(user);
-});
 
 // Listen for notifications from Victory extension
 function listenForNotifications(user) {
