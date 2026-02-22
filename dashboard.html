@@ -1400,9 +1400,12 @@ async function connectPartner() {
 }
     
     const container = document.getElementById('encouragement-templates');
+    if (!container) return;
+    
     container.innerHTML = '';
     
-    Object.keys(templates).forEach(category => {
+    if (templates && typeof templates === 'object') {
+        Object.keys(templates).forEach(category => {
         const categoryDiv = document.createElement('div');
         categoryDiv.className = 'message-category';
         categoryDiv.innerHTML = `
