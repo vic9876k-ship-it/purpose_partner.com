@@ -52,15 +52,22 @@
                 return;
             }
 
-            onAuthStateChanged(auth, async (user) => {
+            onAuthStateChanged(auth, (user) => {
                 if (!user) {
                     window.location.href = 'login.html';
                     return;
                 }
 
-                console.log("User logged in:", user.email);
-                const userData = await loadDashboardData(user);
-                updateHeaderUser(user, userData);
+                document.getElementById('user-name').textContent =
+                    user.displayName || user.email;
+
+                document.getElementById('user-avatar').textContent =
+                    (user.displayName || user.email).charAt(0).toUpperCase();
+
+                document.getElementById('welcome-name').textContent =
+                    user.displayName || 'Partner';
+
+                loadDashboardData(user);
                 listenForNotifications(user);
             });
         });
