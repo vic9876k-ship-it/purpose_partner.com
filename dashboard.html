@@ -44,8 +44,8 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Define templates object if not already defined
-        const templates = templates || {};
+        // Define templates object
+        const templates = {};
 
         document.addEventListener('DOMContentLoaded', async () => {
             // Check sessionStorage first before Firebase init
