@@ -1277,12 +1277,12 @@ class LocalAuth {
 // Listen for notifications from Victory extension
 function listenForNotifications(user) {
     // Listen for notifications where this user is a partner
-    const notificationsRef = window.firestore.query(
-        window.firestore.collection(window.db, 'notifications'),
-        window.firestore.where('partnerIds', 'array-contains', user.uid)
+    const notificationsRef = query(
+        collection(db, 'notifications'),
+        where('partnerIds', 'array-contains', user.uid)
     );
 
-    window.firestore.onSnapshot(notificationsRef, (snapshot) => {
+    onSnapshot(notificationsRef, (snapshot) => {
         snapshot.docChanges().forEach((change) => {
             if (change.type === 'added') {
                 const notification = change.doc.data();
