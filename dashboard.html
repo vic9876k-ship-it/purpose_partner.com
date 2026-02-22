@@ -10,8 +10,26 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc, getDocs, collection, where, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+        import { 
+          getAuth, 
+          onAuthStateChanged 
+        } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+
+        import { 
+          getFirestore,
+          doc,
+          collection,
+          query,
+          where,
+          orderBy,
+          onSnapshot,
+          getDoc,
+          getDocs,
+          addDoc,
+          updateDoc,
+          deleteDoc,
+          limit
+        } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyC4HhpXcYdGhvFRIz4IHksilgnMnRDbiS8",
