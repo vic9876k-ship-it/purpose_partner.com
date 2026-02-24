@@ -51,19 +51,19 @@
             // Check sessionStorage first before Firebase init
             const user = sessionStorage.getItem("loggedInUser");
             if (!user) {
-                window.location.href = 'login.html';
+                window.location.replace("login.html");
                 return;
             }
 
-            // Controlled auth state listener
-            let authChecked = false;
+            // MASTER AUTH LOGIC
+            let authResolved = false;
 
             onAuthStateChanged(auth, (user) => {
-                if (authChecked) return;
-                authChecked = true;
+                if (authResolved) return;
+                authResolved = true;
 
                 if (!user) {
-                    if (!window.location.pathname.includes("login.html")) {
+                    if (!window.location.pathname.endsWith("login.html")) {
                         window.location.replace("login.html");
                     }
                     return;

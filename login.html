@@ -140,15 +140,15 @@
         }
     }
 
-    // Controlled auth state listener
-    let authChecked = false;
+    // MASTER AUTH LOGIC
+    let authResolved = false;
 
     window.firebaseAuth.onAuthStateChanged(window.auth, (user) => {
-        if (authChecked) return;
-        authChecked = true;
+        if (authResolved) return;
+        authResolved = true;
 
         if (user) {
-            if (!window.location.pathname.includes("dashboard.html")) {
+            if (!window.location.pathname.endsWith("dashboard.html")) {
                 window.location.replace("dashboard.html");
             }
         }
