@@ -1397,8 +1397,7 @@ async function connectPartner() {
         console.error('Error connecting partner:', error);
         alert('Failed to connect partner. Please try again.');
     }
-}
-    
+
     const container = document.getElementById('encouragement-templates');
     if (!container) return;
     
@@ -1419,6 +1418,7 @@ async function connectPartner() {
             container.appendChild(categoryDiv);
         });
     }
+}
 
 
 function selectTemplate(message) {
