@@ -1411,6 +1411,7 @@ async function connectPartner() {
         // Close modal and refresh
         closeInviteModal();
         location.reload(); // Refresh to show new partner
+        return;
         
     } catch (error) {
         console.error('Error connecting partner:', error);
