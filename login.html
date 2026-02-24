@@ -18,7 +18,9 @@
         GoogleAuthProvider,
         signOut as firebaseSignOut,
         onAuthStateChanged,
-        updateProfile
+        updateProfile,
+        setPersistence,
+        browserLocalPersistence
     } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
     import { 
         getFirestore, 
@@ -52,6 +54,9 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
     const googleProvider = new GoogleAuthProvider();
+
+    // Set auth persistence
+    await setPersistence(auth, browserLocalPersistence);
 
     // Make globally available
     window.auth = auth;
@@ -143,7 +148,9 @@
     // MASTER AUTH LOGIC
     let authResolved = false;
 
+    console.log("Page:", window.location.pathname);
     window.firebaseAuth.onAuthStateChanged(window.auth, (user) => {
+        console.log("Auth fired:", user);
         if (authResolved) return;
         authResolved = true;
 

@@ -1,5 +1,5 @@
 // PurposePartner Service Worker
-const CACHE_NAME = 'purposepartner-v1';
+const CACHE_NAME = 'app-cache-v2';
 
 // Install event
 self.addEventListener('install', (event) => {
@@ -10,7 +10,12 @@ self.addEventListener('install', (event) => {
 // Activate event
 self.addEventListener('activate', (event) => {
   console.log('Service Worker activating.');
-  event.waitUntil(clients.claim());
+  event.waitUntil(
+    caches.keys().then((keys) => Promise.all(
+      keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))
+    ))
+  );
+  clients.claim();
 });
 
 // Push event - handle incoming notifications
@@ -112,6 +117,14 @@ self.addEventListener('fetch', (event) => {
 
   // Skip cross-origin requests
   if (!event.request.url.startsWith(self.location.origin)) return;
+
+  // Network-first for HTML to prevent cached redirect loops
+  if (event.request.url.endsWith('.html')) {
+    event.respondWith(
+      fetch(event.request).catch(() => caches.match(event.request))
+    );
+    return;
+  }
 
   event.respondWith(
     caches.match(event.request).then((response) => {

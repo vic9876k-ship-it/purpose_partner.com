@@ -12,7 +12,9 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
         import { 
           getAuth, 
-          onAuthStateChanged 
+          onAuthStateChanged,
+          setPersistence,
+          browserLocalPersistence
         } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 
         import { 
@@ -44,6 +46,9 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        // Set auth persistence
+        await setPersistence(auth, browserLocalPersistence);
+
         // Define templates object
         const templates = {};
 
@@ -58,7 +63,9 @@
             // MASTER AUTH LOGIC
             let authResolved = false;
 
+            console.log("Page:", window.location.pathname);
             onAuthStateChanged(auth, (user) => {
+                console.log("Auth fired:", user);
                 if (authResolved) return;
                 authResolved = true;
 
