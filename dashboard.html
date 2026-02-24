@@ -1406,18 +1406,19 @@ async function connectPartner() {
     
     if (templates && typeof templates === 'object') {
         Object.keys(templates).forEach(category => {
-        const categoryDiv = document.createElement('div');
-        categoryDiv.className = 'message-category';
-        categoryDiv.innerHTML = `
-            <div class="category-title">${category}</div>
-            <div class="category-messages">
-                ${templates[category].map(msg => 
-                    `<button class="template-btn" onclick="selectTemplate('${msg.replace(/'/g, "\\'")}')">${msg.substring(0, 30)}...</button>`
-                ).join('')}
-            </div>
-        `;
-        container.appendChild(categoryDiv);
-    });
+            const categoryDiv = document.createElement('div');
+            categoryDiv.className = 'message-category';
+            categoryDiv.innerHTML = `
+                <div class="category-title">${category}</div>
+                <div class="category-messages">
+                    ${templates[category].map(msg => 
+                        `<button class="template-btn" onclick="selectTemplate('${msg.replace(/'/g, "\\'")}')">${msg.substring(0, 30)}...</button>`
+                    ).join('')}
+                </div>
+            `;
+            container.appendChild(categoryDiv);
+        });
+    }
 
 
 function selectTemplate(message) {
