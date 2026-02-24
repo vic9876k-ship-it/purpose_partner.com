@@ -112,9 +112,8 @@
             // Ensure user document exists in Firestore
             await ensureUserDocument(userCredential.user);
             
-            // Store login state and redirect
+            // Store login state
             sessionStorage.setItem('loggedInUser', email);
-            window.location.href = 'dashboard.html';
         } catch (error) {
             console.error('Sign in error:', error);
             errorDiv.textContent = error.message;
@@ -132,9 +131,8 @@
             // Ensure user document exists in Firestore
             await ensureUserDocument(result.user);
             
-            // Store login state and redirect
+            // Store login state
             sessionStorage.setItem('loggedInUser', result.user.email);
-            window.location.href = 'dashboard.html';
         } catch (error) {
             console.error('Google sign in error:', error);
             errorDiv.textContent = error.message;
@@ -142,11 +140,17 @@
         }
     }
 
-    // Check if already signed in
+    // Controlled auth state listener
+    let authChecked = false;
+
     window.firebaseAuth.onAuthStateChanged(window.auth, (user) => {
+        if (authChecked) return;
+        authChecked = true;
+
         if (user) {
-            sessionStorage.setItem('loggedInUser', user.email);
-            window.location.href = 'dashboard.html';
+            if (!window.location.pathname.includes("dashboard.html")) {
+                window.location.replace("dashboard.html");
+            }
         }
     });
 

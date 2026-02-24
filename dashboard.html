@@ -55,25 +55,37 @@
                 return;
             }
 
+            // Controlled auth state listener
+            let authChecked = false;
+
             onAuthStateChanged(auth, (user) => {
+                if (authChecked) return;
+                authChecked = true;
+
                 if (!user) {
-                    window.location.href = 'login.html';
+                    if (!window.location.pathname.includes("login.html")) {
+                        window.location.replace("login.html");
+                    }
                     return;
                 }
 
-                // Optional safety check for DOM elements
-                const userNameEl = document.getElementById('user-name');
-                const userAvatarEl = document.getElementById('user-avatar');
-                const welcomeNameEl = document.getElementById('welcome-name');
-
-                if(userNameEl) userNameEl.textContent = user.displayName || user.email;
-                if(userAvatarEl) userAvatarEl.textContent = (user.displayName || user.email).charAt(0).toUpperCase();
-                if(welcomeNameEl) welcomeNameEl.textContent = user.displayName || 'Partner';
-
-                loadDashboardData(user);
-                listenForNotifications(user);
+                initializeDashboard(user);
             });
         });
+
+        function initializeDashboard(user) {
+            // Optional safety check for DOM elements
+            const userNameEl = document.getElementById('user-name');
+            const userAvatarEl = document.getElementById('user-avatar');
+            const welcomeNameEl = document.getElementById('welcome-name');
+
+            if(userNameEl) userNameEl.textContent = user.displayName || user.email;
+            if(userAvatarEl) userAvatarEl.textContent = (user.displayName || user.email).charAt(0).toUpperCase();
+            if(welcomeNameEl) welcomeNameEl.textContent = user.displayName || 'Partner';
+
+            loadDashboardData(user);
+            listenForNotifications(user);
+        }
 
         function updateHeaderUser(user, userData) {
             const displayName = userData?.displayName || user.displayName || user.email || 'Partner';
