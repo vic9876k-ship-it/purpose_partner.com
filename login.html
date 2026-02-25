@@ -171,14 +171,10 @@
         window.__authListenerAttached = true;
         
         window.firebaseAuth.onAuthStateChanged(window.auth, (user) => {
-            console.log("Login page auth state:", user);
-            if (authResolved) return;
-            authResolved = true;
+            console.log("Login auth state:", user);
 
             if (user) {
-                // if (!window.location.pathname.endsWith("dashboard.html")) {
-                //     window.location.replace("dashboard.html");
-                // }
+                window.location.replace("dashboard.html");
             }
         });
     }
