@@ -9,21 +9,17 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <!-- Firebase SDK for Auth + Firestore -->
 <script type="module">
-    import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
+    import "./firebaseInit.js";
+    import { protectRoute } from "./authGuard.js";
     import { 
-        getAuth, 
         signInWithEmailAndPassword, 
         createUserWithEmailAndPassword,
         signInWithPopup,
         GoogleAuthProvider,
         signOut as firebaseSignOut,
-        onAuthStateChanged,
-        updateProfile,
-        setPersistence,
-        browserLocalPersistence
+        updateProfile
     } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
     import { 
-        getFirestore, 
         collection, 
         doc, 
         addDoc, 
@@ -33,71 +29,25 @@
         query, 
         where, 
         orderBy, 
-        limit,
-        onSnapshot,
-        deleteDoc,
-        setDoc
+        limit, 
+        onSnapshot, 
+        deleteDoc, 
+        setDoc,
+        arrayUnion
     } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
 
-    // Firebase config
-    const firebaseConfig = {
-        apiKey: "AIzaSyC4HhpXcYdGhvFRIz4IHksilgnMnRDbiS8",
-        authDomain: "victory-fb944.firebaseapp.com",
-        projectId: "victory-fb944",
-        storageBucket: "victory-fb944.firebasestorage.app",
-        messagingSenderId: "650310438797",
-        appId: "1:650310438797:web:c0bd9a1caaa6093d5137c4"
-    };
-
-    // Initialize Firebase
-    const app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0];
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+    // Google provider
     const googleProvider = new GoogleAuthProvider();
-
-    // Set auth persistence
-    await setPersistence(auth, browserLocalPersistence);
-
-    // Clear all caches and unregister service worker
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(registrations => {
-            for (let reg of registrations) {
-                reg.unregister();
-            }
-        });
-    }
-
-    if ('caches' in window) {
-        caches.keys().then(keys => {
-            keys.forEach(key => caches.delete(key));
-        });
-    }
-
-    console.log("Service worker unregistered and caches cleared.");
-
-    // Make globally available
-    window.auth = auth;
-    window.db = db;
     window.googleProvider = googleProvider;
-    window.firebaseAuth = { 
-        signInWithEmailAndPassword, 
-        createUserWithEmailAndPassword,
-        signInWithPopup,
-        firebaseSignOut,
-        onAuthStateChanged,
-        updateProfile,
-        GoogleAuthProvider
-    };
-    window.firestore = { collection, doc, addDoc, getDoc, getDocs, updateDoc, query, where, orderBy, limit, onSnapshot, deleteDoc, setDoc };
 
     // Ensure user document exists in Firestore
     async function ensureUserDocument(user) {
-        const userDocRef = window.firestore.doc(window.db, 'users', user.uid);
-        const userDoc = await window.firestore.getDoc(userDocRef);
+        const userDocRef = doc(window.db, 'users', user.uid);
+        const userDoc = await getDoc(userDocRef);
         
         if (!userDoc.exists()) {
             // Create new user document with zero stats
-            await window.firestore.setDoc(userDocRef, {
+            await setDoc(userDocRef, {
                 uid: user.uid,
                 email: user.email,
                 displayName: user.displayName || user.email.split('@')[0],
@@ -113,7 +63,7 @@
         } else {
             // Update last login and ensure displayName exists
             const userData = userDoc.data();
-            await window.firestore.updateDoc(userDocRef, {
+            await updateDoc(userDocRef, {
                 lastLogin: new Date().toISOString(),
                 displayName: userData.displayName || user.displayName || user.email.split('@')[0]
             });
@@ -128,7 +78,7 @@
         const errorDiv = document.getElementById('error-message');
         
         try {
-            const userCredential = await window.firebaseAuth.signInWithEmailAndPassword(window.auth, email, password);
+            const userCredential = await signInWithEmailAndPassword(window.auth, email, password);
             console.log('Signed in:', userCredential.user);
             
             // Ensure user document exists in Firestore
@@ -147,7 +97,7 @@
     async function handleGoogleSignIn() {
         const errorDiv = document.getElementById('error-message');
         try {
-            const result = await window.firebaseAuth.signInWithPopup(window.auth, window.googleProvider);
+            const result = await signInWithPopup(window.auth, window.googleProvider);
             console.log('Google sign in:', result.user);
             
             // Ensure user document exists in Firestore
@@ -162,40 +112,12 @@
         }
     }
 
-    // MASTER AUTH LOGIC
-    let authResolved = false;
-
-    console.log("Page:", window.location.pathname);
-    
-    if (!window.__authListenerAttached) {
-        window.__authListenerAttached = true;
-        
-        // window.firebaseAuth.onAuthStateChanged(window.auth, (user) => {
-        //     console.log("Login auth state:", user);
-        //     if (user) {
-        //         window.location.replace("dashboard.html");
-        //     }
-        // });
-    }
+    // Initialize auth guard
+    protectRoute("login");
 
     // Make functions globally available
     window.handleSignIn = handleSignIn;
     window.handleGoogleSignIn = handleGoogleSignIn;
-
-    // Prevent duplicate Google button listener
-    document.addEventListener('DOMContentLoaded', () => {
-        const btn = document.getElementById("googleSignIn");
-        
-        if (!btn || !btn.dataset.listenerAttached) {
-            if (btn) {
-                btn.dataset.listenerAttached = "true";
-                btn.addEventListener("click", async () => {
-                    console.log("Google sign in triggered");
-                    await handleGoogleSignIn();
-                });
-            }
-        }
-    });
 </script>
 <style>
     :root {

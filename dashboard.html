@@ -9,16 +9,10 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        import { 
-          getAuth, 
-          onAuthStateChanged,
-          setPersistence,
-          browserLocalPersistence
-        } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+        import "./firebaseInit.js";
+        import { protectRoute } from "./authGuard.js";
 
-        import { 
-          getFirestore,
+        import {
           doc,
           collection,
           query,
@@ -33,66 +27,11 @@
           limit
         } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyC4HhpXcYdGhvFRIz4IHksilgnMnRDbiS8",
-            authDomain: "victory-fb944.firebaseapp.com",
-            projectId: "victory-fb944",
-            storageBucket: "victory-fb944.firebasestorage.app",
-            messagingSenderId: "650310438797",
-            appId: "1:650310438797:web:c0bd9a1caaa6093d5137c4"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        // Set auth persistence
-        await setPersistence(auth, browserLocalPersistence);
-
         // Define templates object
         const templates = {};
 
-        // Clear all caches and unregister service worker
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(registrations => {
-                for (let reg of registrations) {
-                    reg.unregister();
-                }
-            });
-        }
-
-        if ('caches' in window) {
-            caches.keys().then(keys => {
-                keys.forEach(key => caches.delete(key));
-            });
-        }
-
-        console.log("Service worker unregistered and caches cleared.");
-
-        document.addEventListener('DOMContentLoaded', async () => {
-            // Check sessionStorage first before Firebase init
-            const user = sessionStorage.getItem("loggedInUser");
-            if (!user) {
-                // window.location.replace("login.html");
-                return;
-            }
-
-            // LOOP-PROOF AUTH GUARD
-            let initialCheckComplete = false;
-
-            console.log("Page:", window.location.pathname);
-            // onAuthStateChanged(auth, (user) => {
-            //     console.log("Dashboard auth state:", user);
-            //     if (!initialCheckComplete) {
-            //         initialCheckComplete = true;
-            //         if (!user) {
-            //             window.location.replace("login.html");
-            //             return;
-            //         }
-            //         initializeDashboard(user);
-            //     }
-            // });
-        });
+        // Initialize auth guard
+        protectRoute("dashboard");
 
         function initializeDashboard(user) {
             // Optional safety check for DOM elements
