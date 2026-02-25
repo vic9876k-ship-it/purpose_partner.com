@@ -143,7 +143,13 @@
 
         // Dynamic display name and avatar
         document.addEventListener("DOMContentLoaded", () => {
+            // Check auth first before rendering anything
             const user = LocalAuth.getCurrentUser();
+            if(!user) {
+                window.location.href = 'index.html';
+                return;
+            }
+            
             const displayName = user && user.name ? user.name : "partner";
 
             const welcomeEl = document.getElementById('welcome-name');
@@ -175,14 +181,6 @@
 
         document.getElementById('notifications-btn')?.addEventListener('click', () => {
             console.log('View notifications clicked');
-        });
-
-        // Auth check to prevent dashboard loop
-        LocalAuth.onAuthStateChanged((user) => {
-            if(!user) {
-                window.location.href = 'index.html';
-                return;
-            }
         });
     </script>
 </body>
