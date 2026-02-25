@@ -137,6 +137,7 @@
 
             static onAuthStateChanged(callback) {
                 const user = this.getCurrentUser();
+                console.log('Retrieved user:', user);
                 callback(user); // single execution to prevent loops
             }
         }
@@ -144,12 +145,17 @@
         // Dynamic display name and avatar
         document.addEventListener("DOMContentLoaded", () => {
             // Check auth first before rendering anything
+            console.log('Checking auth...');
             const user = LocalAuth.getCurrentUser();
+            console.log('Retrieved user:', user);
+            
             if(!user) {
+                console.log('No user found, redirecting to index.html');
                 window.location.href = 'index.html';
                 return;
             }
             
+            console.log('User found, staying on dashboard');
             const displayName = user && user.name ? user.name : "partner";
 
             const welcomeEl = document.getElementById('welcome-name');
