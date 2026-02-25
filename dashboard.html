@@ -73,7 +73,7 @@
             // Check sessionStorage first before Firebase init
             const user = sessionStorage.getItem("loggedInUser");
             if (!user) {
-                window.location.replace("login.html");
+                // window.location.replace("login.html");
                 return;
             }
 
@@ -81,20 +81,17 @@
             let initialCheckComplete = false;
 
             console.log("Page:", window.location.pathname);
-            onAuthStateChanged(auth, (user) => {
-                console.log("Dashboard auth state:", user);
-
-                if (!initialCheckComplete) {
-                    initialCheckComplete = true;
-
-                    if (!user) {
-                        window.location.replace("login.html");
-                        return;
-                    }
-
-                    initializeDashboard(user);
-                }
-            });
+            // onAuthStateChanged(auth, (user) => {
+            //     console.log("Dashboard auth state:", user);
+            //     if (!initialCheckComplete) {
+            //         initialCheckComplete = true;
+            //         if (!user) {
+            //             window.location.replace("login.html");
+            //             return;
+            //         }
+            //         initializeDashboard(user);
+            //     }
+            // });
         });
 
         function initializeDashboard(user) {
@@ -650,6 +647,7 @@
     </style>
 </head>
 <body>
+    <h1>DASHBOARD PAGE STATIC</h1>
     <!-- Navigation -->
     <nav>
         <div class="nav-left">
@@ -1477,13 +1475,13 @@ function sendEncouragement() {
 }
 
 // Load initial data
-document.addEventListener('DOMContentLoaded', () => {
-    // Check auth on page load
-    const user = LocalAuth.getCurrentUser();
-    if (!user) {
-        window.location.href = 'login.html';
-    }
-});</script>    </script>
+// document.addEventListener('DOMContentLoaded', () => {
+//     // Check auth on page load
+//     const user = LocalAuth.getCurrentUser();
+//     if (!user) {
+//         window.location.href = 'login.html';
+//     }
+// });</script>    </script>
 </body>
 </html>
 

@@ -170,13 +170,12 @@
     if (!window.__authListenerAttached) {
         window.__authListenerAttached = true;
         
-        window.firebaseAuth.onAuthStateChanged(window.auth, (user) => {
-            console.log("Login auth state:", user);
-
-            if (user) {
-                window.location.replace("dashboard.html");
-            }
-        });
+        // window.firebaseAuth.onAuthStateChanged(window.auth, (user) => {
+        //     console.log("Login auth state:", user);
+        //     if (user) {
+        //         window.location.replace("dashboard.html");
+        //     }
+        // });
     }
 
     // Make functions globally available
@@ -355,6 +354,7 @@
 </style>
 </head>
 <body>
+    <h1>LOGIN PAGE STATIC</h1>
     <div class="container">
         <div class="logo">
             <i class="fas fa-shield-alt"></i>
