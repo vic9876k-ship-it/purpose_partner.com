@@ -58,6 +58,23 @@
     // Set auth persistence
     await setPersistence(auth, browserLocalPersistence);
 
+    // Clear all caches and unregister service worker
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(registrations => {
+            for (let reg of registrations) {
+                reg.unregister();
+            }
+        });
+    }
+
+    if ('caches' in window) {
+        caches.keys().then(keys => {
+            keys.forEach(key => caches.delete(key));
+        });
+    }
+
+    console.log("Service worker unregistered and caches cleared.");
+
     // Make globally available
     window.auth = auth;
     window.db = db;
@@ -150,14 +167,14 @@
 
     console.log("Page:", window.location.pathname);
     window.firebaseAuth.onAuthStateChanged(window.auth, (user) => {
-        console.log("Auth fired:", user);
+        console.log("Login page auth state:", user);
         if (authResolved) return;
         authResolved = true;
 
         if (user) {
-            if (!window.location.pathname.endsWith("dashboard.html")) {
-                window.location.replace("dashboard.html");
-            }
+            // if (!window.location.pathname.endsWith("dashboard.html")) {
+            //     window.location.replace("dashboard.html");
+            // }
         }
     });
 

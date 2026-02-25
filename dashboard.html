@@ -52,6 +52,23 @@
         // Define templates object
         const templates = {};
 
+        // Clear all caches and unregister service worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(registrations => {
+                for (let reg of registrations) {
+                    reg.unregister();
+                }
+            });
+        }
+
+        if ('caches' in window) {
+            caches.keys().then(keys => {
+                keys.forEach(key => caches.delete(key));
+            });
+        }
+
+        console.log("Service worker unregistered and caches cleared.");
+
         document.addEventListener('DOMContentLoaded', async () => {
             // Check sessionStorage first before Firebase init
             const user = sessionStorage.getItem("loggedInUser");
@@ -65,14 +82,14 @@
 
             console.log("Page:", window.location.pathname);
             onAuthStateChanged(auth, (user) => {
-                console.log("Auth fired:", user);
+                console.log("Dashboard page auth state:", user);
                 if (authResolved) return;
                 authResolved = true;
 
                 if (!user) {
-                    if (!window.location.pathname.endsWith("login.html")) {
-                        window.location.replace("login.html");
-                    }
+                    // if (!window.location.pathname.endsWith("login.html")) {
+                    //     window.location.replace("login.html");
+                    // }
                     return;
                 }
 
