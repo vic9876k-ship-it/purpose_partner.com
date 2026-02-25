@@ -42,9 +42,11 @@
                 // Render user info only once
                 const userNameEl = document.getElementById('user-name');
                 const userEmailEl = document.getElementById('user-email');
+                const welcomeEl = document.getElementById('dashboard-welcome');
                 
                 if (userNameEl) userNameEl.textContent = user.name || user.email;
                 if (userEmailEl) userEmailEl.textContent = user.email;
+                if (welcomeEl) welcomeEl.textContent = "Welcome, " + (user.name || user.email);
             }
         });
 
@@ -601,7 +603,7 @@
     </style>
 </head>
 <body>
-    <h1>DASHBOARD PAGE STATIC</h1>
+    <h1 id="dashboard-welcome">Welcome</h1>
     <!-- Navigation -->
     <nav>
         <div class="nav-left">
