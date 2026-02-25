@@ -144,28 +144,27 @@
 
         // Dynamic display name and avatar
         document.addEventListener("DOMContentLoaded", () => {
-            // Check auth first before rendering anything
-            console.log('Checking auth...');
-            const user = LocalAuth.getCurrentUser();
-            console.log('Retrieved user:', user);
-            
-            if(!user) {
-                console.log('No user found, redirecting to index.html');
-                window.location.href = 'index.html';
-                return;
-            }
-            
-            console.log('User found, staying on dashboard');
-            const displayName = user && user.name ? user.name : "partner";
+            // Small delay ensures LocalAuth updates localStorage before we check
+            setTimeout(() => {
+                LocalAuth.onAuthStateChanged((user) => {
+                    if(!user){
+                        // Not signed in → safe redirect
+                        window.location.href = 'index.html';
+                        return;
+                    }
 
-            const welcomeEl = document.getElementById('welcome-name');
-            if(welcomeEl) welcomeEl.textContent = `Thank you for being an accountability Hero, ${displayName}.`;
+                    // Signed-in user → update greeting and dashboard content
+                    const displayName = user.name || "partner";
+                    const welcomeEl = document.getElementById('welcome-name');
+                    if(welcomeEl) welcomeEl.textContent = `Thank you for being an accountability Hero, ${displayName}.`;
 
-            const userNameEl = document.getElementById('user-name');
-            if(userNameEl) userNameEl.textContent = displayName;
+                    const userNameEl = document.getElementById('user-name');
+                    if(userNameEl) userNameEl.textContent = displayName;
 
-            const userAvatarEl = document.getElementById('user-avatar');
-            if(userAvatarEl) userAvatarEl.textContent = displayName.charAt(0).toUpperCase();
+                    const userAvatarEl = document.getElementById('user-avatar');
+                    if(userAvatarEl) userAvatarEl.textContent = displayName.charAt(0).toUpperCase();
+                });
+            }, 50); // 50ms is usually enough
         });
 
         // Example feature button handlers from cached version
