@@ -2,1432 +2,188 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <title>Dashboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - PurposePartner</title>
-    <link rel="icon" type="image/png" href="icons/icon-192.png">
-    <link rel="apple-touch-icon" href="icons/icon-512.png">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script type="module">
-        import "./firebaseInit.js";
-        import { protectRoute } from "./authGuard.js";
-
-        import {
-          doc,
-          collection,
-          query,
-          where,
-          orderBy,
-          onSnapshot,
-          getDoc,
-          getDocs,
-          addDoc,
-          updateDoc,
-          deleteDoc,
-          limit
-        } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-        // Define templates object
-        const templates = {};
-
-        // Initialize auth guard
-        protectRoute("dashboard");
-
-        // Safe dynamic rendering after authentication confirmed
-        document.addEventListener('DOMContentLoaded', () => {
-            // Get current user using LocalAuth
-            const user = LocalAuth.getCurrentUser();
-            
-            if (user) {
-                // Render user info only once
-                const userNameEl = document.getElementById('user-name');
-                const userEmailEl = document.getElementById('user-email');
-                
-                if (userNameEl) userNameEl.textContent = user.name || user.email;
-                if (userEmailEl) userEmailEl.textContent = user.email;
-            }
-            
-            // Update greeting safely
-            const currentUser = LocalAuth.getCurrentUser();
-            const displayName = currentUser && currentUser.name ? currentUser.name : "partner";
-            const greetingEl = document.getElementById("greeting");
-            if (greetingEl) {
-                greetingEl.textContent = `Thank you for being an accountability Hero, ${displayName}.`;
-            }
-        });
-
-        function initializeDashboard(user) {
-            // Optional safety check for DOM elements
-            const userNameEl = document.getElementById('user-name');
-            const userAvatarEl = document.getElementById('user-avatar');
-            const welcomeNameEl = document.getElementById('welcome-name');
-
-            if(userNameEl) userNameEl.textContent = user.displayName || user.email;
-            if(userAvatarEl) userAvatarEl.textContent = (user.displayName || user.email).charAt(0).toUpperCase();
-            if(welcomeNameEl) welcomeNameEl.textContent = user.displayName || 'Partner';
-
-            loadDashboardData(user);
-            listenForNotifications(user);
-        }
-
-        function updateHeaderUser(user, userData) {
-            const displayName = userData?.displayName || user.displayName || user.email || 'Partner';
-            const initial = displayName.charAt(0).toUpperCase();
-
-            const nameEl = document.getElementById('user-name');
-            const avatarEl = document.getElementById('user-avatar');
-            const welcomeEl = document.getElementById('welcome-name');
-
-            if (nameEl) nameEl.textContent = displayName;
-            if (avatarEl) avatarEl.textContent = initial;
-            if (welcomeEl) welcomeEl.textContent = displayName;
-        }
-
-        async function loadDashboardData(user) {
-            try {
-                const userRef = doc(db, 'users', user.uid);
-                const userSnap = await getDoc(userRef);
-
-                if (!userSnap.exists()) {
-                    console.warn('No Firestore document for user yet.');
-                    renderEmptyPartners();
-                    renderEmptyActivity();
-                    return null;
-                }
-
-                const userData = userSnap.data();
-
-                renderStats(userData);
-                await renderPartners(userData.partners || []);
-                await renderActivity(user.uid);
-                return userData;
-            } catch (error) {
-                console.error('Error loading dashboard data:', error);
-                renderEmptyPartners();
-                renderEmptyActivity();
-                return null;
-            }
-        }
-
-        function renderStats(userData) {
-            const partnersHelpedEl = document.getElementById('partners-helped');
-            const encouragementsEl = document.getElementById('encouragements-sent');
-            const prayersEl = document.getElementById('prayers-offered');
-            const victoriesEl = document.getElementById('victories-celebrated');
-            const totalEncEl = document.getElementById('total-encouragements');
-            const milestonesEl = document.getElementById('total-milestones');
-            const totalPartnersEl = document.getElementById('total-partners');
-            const successRateEl = document.getElementById('success-rate');
-
-            if (partnersHelpedEl) partnersHelpedEl.textContent = userData.partners?.length || 0;
-            if (encouragementsEl) encouragementsEl.textContent = userData.encouragementCount || 0;
-            if (prayersEl) prayersEl.textContent = userData.prayerCount || 0;
-            if (victoriesEl) victoriesEl.textContent = userData.victoryCount || 0;
-            if (totalEncEl) totalEncEl.textContent = userData.totalEncouragements ?? userData.encouragementCount ?? 0;
-            if (milestonesEl) milestonesEl.textContent = userData.milestoneCount ?? 0;
-            if (totalPartnersEl) totalPartnersEl.textContent = userData.partners?.length ?? 0;
-            if (successRateEl) successRateEl.textContent = formatPercentage(userData.successRate);
-        }
-
-        async function renderPartners(partnerIds) {
-            const partnersList = document.getElementById('partners-list');
-            if (!partnersList) return;
-
-            partnersList.innerHTML = '';
-
-            if (!partnerIds.length) {
-                renderEmptyPartners();
-                return;
-            }
-
-            const partnerPromises = partnerIds.map((partnerId) =>
-                getDoc(doc(db, 'users', partnerId))
-            );
-
-            const partnerSnapshots = await Promise.all(partnerPromises);
-
-            partnerSnapshots.forEach((snapshot) => {
-                if (!snapshot.exists()) return;
-
-                const partner = snapshot.data();
-                const partnerEl = document.createElement('div');
-                partnerEl.className = 'partner-card';
-                const partnerName = partner.displayName || partner.email || 'Partner';
-
-                partnerEl.innerHTML = `
-                    <div class="partner-avatar">${partnerName.charAt(0).toUpperCase()}</div>
-                    <div class="partner-info">
-                        <h4>${partnerName}</h4>
-                        <p>${partner.email || ''}</p>
-                    </div>
-                    <div class="partner-actions">
-                        <button class="btn-icon" onclick="startChat('${snapshot.id}')">
-                            <i class="fas fa-comment"></i>
-                        </button>
-                    </div>
-                `;
-
-                partnersList.appendChild(partnerEl);
-            });
-
-            if (!partnersList.children.length) {
-                renderEmptyPartners();
-            }
-        }
-
-        async function renderActivity(userId) {
-            const activitySection = document.querySelector('.activity-section');
-            if (!activitySection) return;
-
-            const listContainer = document.createElement('div');
-            listContainer.className = 'activity-list';
-            listContainer.id = 'activity-list';
-
-            try {
-                const activityQuery = query(
-                    collection(db, 'activities'),
-                    where('userId', '==', userId),
-                    orderBy('timestamp', 'desc'),
-                    limit(10)
-                );
-
-                const snapshot = await getDocs(activityQuery);
-
-                if (snapshot.empty) {
-                    renderEmptyActivity();
-                    return;
-                }
-
-                snapshot.forEach((docSnapshot) => {
-                    const activity = docSnapshot.data();
-                    const item = document.createElement('div');
-                    item.className = 'activity-item';
-                    item.innerHTML = `
-                        <div class="activity-icon">
-                            <i class="fas ${activity.icon || 'fa-bell'}"></i>
-                        </div>
-                        <div class="activity-content">
-                            <h4>${activity.title || 'Activity'}</h4>
-                            <div class="activity-time">${formatTimestamp(activity.timestamp)}</div>
-                        </div>
-                    `;
-                    listContainer.appendChild(item);
-                });
-
-                activitySection.innerHTML = '';
-                activitySection.appendChild(listContainer);
-            } catch (error) {
-                console.error('Error loading activity:', error);
-                renderEmptyActivity();
-            }
-        }
-
-        function renderEmptyPartners() {
-            const partnersList = document.getElementById('partners-list');
-            if (!partnersList) return;
-
-            partnersList.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-users" style="font-size: 3rem; color: #ccc; margin-bottom: 1rem;"></i>
-                    <h4>No Accountability Partners Yet</h4>
-                    <p style="color: #666; margin-bottom: 1.5rem;">Connect with someone you trust to share your journey of purity and accountability.</p>
-                    <button class="btn" onclick="showInviteModal()">Add Your First Partner</button>
-                </div>
-            `;
-        }
-
-        function renderEmptyActivity() {
-            const activitySection = document.querySelector('.activity-section');
-            if (!activitySection) return;
-
-            activitySection.innerHTML = `
-                <h3 style="margin-bottom: 1rem; color: var(--secondary-color);">Recent Activity</h3>
-                <div class="empty-activity">
-                    <i class="fas fa-clock" style="font-size: 3rem; color: #ccc; margin-bottom: 1rem;"></i>
-                    <p style="color: #666; text-align: center;">No recent activity yet. Start by connecting with a partner!</p>
-                </div>
-            `;
-        }
-
-        function formatTimestamp(timestamp) {
-            if (!timestamp) return '';
-            if (typeof timestamp.toDate === 'function') {
-                return timestamp.toDate().toLocaleString();
-            }
-            return new Date(timestamp).toLocaleString();
-        }
-
-        function formatPercentage(value) {
-            if (value === undefined || value === null) {
-                return '0%';
-            }
-            const number = Number(value);
-            if (Number.isNaN(number)) {
-                return '0%';
-            }
-            return `${Math.round(number)}%`;
-        }
-
-        function listenForNotifications(user) {
-            const notificationsRef = query(
-                collection(db, 'notifications'),
-                where('partnerIds', 'array-contains', user.uid)
-            );
-
-            onSnapshot(notificationsRef, (snapshot) => {
-                snapshot.docChanges().forEach((change) => {
-                    if (change.type === 'added') {
-                        const notification = change.doc.data();
-                        if (!notification.read) {
-                            showBlockNotification(notification);
-                        }
-                    }
-                });
-            });
-        }
-    </script>
-<style>
-        :root {
-            --primary-color: #ffffff;
-            --secondary-color: #E74C3C;
-            --accent-color: #E74C3C;
-            --light-color: #E74C3C;
-            --dark-color: #E74C3C;
-            --success-color: #E74C3C;
-            --warning-color: #E74C3C;
-            --danger-color: #E74C3C;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+    <style>
+        /* Base styles from cached version */
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #ffffff;
-            color: var(--dark-color);
-        }
-
-        /* Navigation */
-        nav {
-            background: var(--primary-color);
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: white;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            max-width: 1200px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .nav-left {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .nav-right {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            color: var(--primary-color);
-        }
-
-        /* Main Content */
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-
-        .dashboard-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-
-        .welcome-message {
-            color: var(--secondary-color);
-        }
-
-        .welcome-message h1 {
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .streak {
-            background: var(--success-color);
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 25px;
-            font-weight: bold;
-        }
-
-        /* Stats Cards */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-            justify-content: center;
-            max-width: 1200px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .human-icon {
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-card {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-
-        .stat-card i {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-            color: var(--primary-color);
-        }
-
-        .stat-number {
-            font-size: 2rem;
-            font-weight: bold;
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-label {
-            color: #666;
-        }
-
-        /* Main Content Grid */
-        .content-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 2rem;
-            margin-bottom: 2rem;
-            max-width: 1200px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        /* Partners Section */
-        .partners-section {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-
-        .section-title {
-            font-size: 1.3rem;
-            color: var(--secondary-color);
-        }
-
-        .btn {
-            padding: 0.5rem 1rem;
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 0.9rem;
-        }
-
-        .btn:hover {
-            background: var(--accent-color);
-        }
-
-        .partners-list {
-            display: grid;
-            gap: 1rem;
-        }
-
-        .partner-card {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 1rem;
-            border: 1px solid #eee;
-            border-radius: 8px;
-            background: var(--light-color);
-        }
-
-        .partner-avatar {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: var(--primary-color);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-        }
-
-        .partner-info h4 {
-            margin-bottom: 0.25rem;
-        }
-
-        .partner-status {
-            padding: 0.25rem 0.5rem;
-            border-radius: 12px;
-            font-size: 0.8rem;
-            font-weight: bold;
-        }
-
-        .status-active {
-            background: var(--success-color);
-            color: white;
-        }
-
-        .status-pending {
-            background: var(--warning-color);
-            color: white;
-        }
-
-        /* Activity Feed */
-        .activity-section {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-
-        .activity-item {
-            display: flex;
-            gap: 1rem;
-            padding: 1rem 0;
-            border-bottom: 1px solid #eee;
-        }
-
-        .activity-item:last-child {
-            border-bottom: none;
-        }
-
-        .activity-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: var(--primary-color);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-        }
-
-        .activity-content h4 {
-            margin-bottom: 0.25rem;
-            color: var(--secondary-color);
-        }
-
-        .activity-time {
-            color: #666;
-            font-size: 0.9rem;
-        }
-
-        /* Sidebar */
-        .sidebar {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-
-        .sidebar-card {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-
-        .quote-card blockquote {
-            font-style: italic;
-            margin-bottom: 1rem;
-            color: var(--secondary-color);
-        }
-
-        .quote-author {
-            text-align: right;
-            color: var(--primary-color);
-            font-weight: bold;
-        }
-
-        .quick-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .quick-actions .btn {
-            text-align: left;
-            justify-content: flex-start;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .content-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .dashboard-header {
-                flex-direction: column;
-                text-align: center;
-            }
-
-            nav {
-                flex-direction: column;
-                gap: 1rem;
-            }
-
-            .nav-left, .nav-right {
-                width: 100%;
-                justify-content: center;
-            }
-        }
-    </style>
-</head>
-<body>
-    <!-- Navigation -->
-    <nav>
-        <div class="nav-left">
-            <i class="fas fa-shield-alt"></i>
-            <span>PurposePartner</span>
-        </div>
-        <div class="nav-right">
-            <div class="user-info">
-
-            .btn {
-                padding: 0.5rem 1rem;
-                background: var(--primary-color);
-                color: white;
-                border: none;
-                border-radius: 5px;
-                cursor: pointer;
-                text-decoration: none;
-                display: inline-block;
-                font-size: 0.9rem;
-            }
-    <!-- Main Content -->
-    <div class="container">
-        <!-- Dashboard Header -->
-        <div class="dashboard-header">
-            <div class="welcome-message">
-                <h2 id="greeting">Thank you for being an accountability Hero, partner.</h2>
-                <p>Your willingness to help others in their purity journey makes a real difference. You're appreciated!</p>
-            </div>
-            <div class="streak">
-                *  7 Day Streak
-            </div>
-        </div>
-
-        <!-- Stats Cards -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="human-icon">👥</div>
-                <div class="stat-number" id="partners-helped">0</div>
-                <div class="stat-label">People You're Helping</div>
-            </div>
-            <div class="stat-card">
-                <div class="human-icon">💬</div>
-                <div class="stat-number" id="encouragements-sent">0</div>
-                <div class="stat-label">Encouragements Sent</div>
-            </div>
-            <div class="stat-card">
-                <div class="human-icon">🙏</div>
-                <div class="stat-number" id="prayers-offered">0</div>
-                <div class="stat-label">Prayers Offered</div>
-            </div>
-            <div class="stat-card">
-                <div class="human-icon">🏆</div>
-                <div class="stat-number" id="victories-celebrated">0</div>
-                <div class="stat-label">Victories Celebrated</div>
-            </div>
-        </div>
-
-        <!-- Content Grid -->
-        <div class="content-grid">
-            <!-- Partners Section -->
-            <div class="partners-section">
-                <div class="section-header">
-                    <h2 class="section-title">Accountability Partners</h2>
-                    <button class="btn" onclick="showInviteModal()">Add Partner</button>
-                </div>
-
-                <div class="partners-list" id="partners-list">
-                    <div class="empty-state">
-                        <i class="fas fa-users" style="font-size: 3rem; color: #ccc; margin-bottom: 1rem;"></i>
-                        <h4>No Accountability Partners Yet</h4>
-                        <p style="color: #666; margin-bottom: 1.5rem;">Connect with someone you trust to share your journey of purity and accountability.</p>
-                        <button class="btn" onclick="showInviteModal()">Add Your First Partner</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Notifications Tab -->
-            <div class="partners-section">
-                <div class="section-header">
-                    <h2 class="section-title">Notifications</h2>
-                </div>
-                <div class="partners-list" id="notifications-list">
-                    <div class="empty-state">
-                        <i class="fas fa-bell" style="font-size: 3rem; color: #ccc; margin-bottom: 1rem;"></i>
-                        <h4>No Notifications Yet</h4>
-                        <p style="color: #666; margin-bottom: 1.5rem;">Notifications from the extension will appear here when you receive encouragement requests.</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Sidebar -->
-            <div class="sidebar">
-                <!-- Daily Quote -->
-                <div class="sidebar-card quote-card">
-                    <blockquote>
-                        "Therefore, since we are surrounded by such a great cloud of witnesses, let us throw off everything that hinders and the sin that so easily entangles. And let us run with perseverance the race marked out for us."
-                    </blockquote>
-                    <div class="quote-author">Hebrews 12:1</div>
-                </div>
-
-                
-                            </div>
-        </div>
-    </div>
-
-    <!-- Invite Partner Modal -->
-    <div id="invite-modal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Invite Accountability Partner</h3>
-                <span class="close" onclick="closeInviteModal()">&times;</span>
-            </div>
-            <div class="modal-body">
-                <div id="invite-form">
-                    <div style="margin-bottom: 1rem;">
-                        <h4 style="margin-bottom: 0.5rem; color: var(--secondary-color);">Connect with Accountability Partner</h4>
-                        <p style="color: #666; font-size: 0.9rem; margin-bottom: 1rem;">
-                            Enter your partner's invite code from the Victory extension to connect and receive notifications when they need encouragement.
-                        </p>
-                    </div>
-                    <div class="form-group">
-                        <label for="partner-code">Partner's Invite Code</label>
-                        <input type="text" id="partner-code" placeholder="Enter 6-character code (e.g., ABC123)" maxlength="6" style="text-transform: uppercase; font-family: monospace; font-size: 1.2rem; text-align: center; letter-spacing: 0.2rem;">
-                    </div>
-                    <button class="btn" onclick="connectPartner()" style="width: 100%; margin-bottom: 1rem;">Connect Partner</button>
-                    
-                    <div style="text-align: center; margin: 1rem 0; position: relative;">
-                        <span style="background: white; padding: 0 1rem; color: #666; font-size: 0.9rem;">OR</span>
-                        <hr style="border: none; border-top: 1px solid #eee; margin: 0;">
-                    </div>
-                    
-                    <div style="margin-bottom: 1rem;">
-                        <h4 style="margin-bottom: 0.5rem; color: var(--secondary-color);">Invite Someone New</h4>
-                        <p style="color: #666; font-size: 0.9rem;">
-                            Send an invitation to someone you trust to be your accountability partner.
-                        </p>
-                    </div>
-                    <div class="form-group">
-                        <label for="invite-email">Their Email Address</label>
-                        <input type="email" id="invite-email" placeholder="partner@example.com" required>
-                    </div>
-                    <button class="btn" onclick="sendInvite()" style="width: 100%;">Send Invitation</button>
-                </div>
-                <div id="invite-success" style="display: none; text-align: center;">
-                    <i class="fas fa-check-circle" style="font-size: 3rem; color: var(--success-color); margin-bottom: 1rem;"></i>
-                    <h3>Invitation Sent!</h3>
-                    <p style="margin-bottom: 1rem;">Share this code with your partner:</p>
-                    <div style="background: var(--light-color); padding: 1rem; border-radius: 8px; font-family: monospace; font-size: 1.2rem; font-weight: bold; margin-bottom: 1rem;" id="generated-code">ABC12345</div>
-                    <p style="color: #666; font-size: 0.9rem;">They'll need this code to connect with you.</p>
-                    <button class="btn" onclick="closeInviteModal()" style="margin-top: 1rem;">Done</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-<style>
-        /* Modal Styles */
-        .modal {
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal-content {
-            background: white;
-            margin: 20px;
-            padding: 0;
-            border-radius: 10px;
-            width: 100%;
-            max-width: 500px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        }
-
-        .modal-header {
-            padding: 1.5rem;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .modal-header h3 {
             margin: 0;
-            color: var(--secondary-color);
-        }
-
-        .close {
-            color: #aaa;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .close:hover {
-            color: #000;
-        }
-
-        .modal-body {
-            padding: 1.5rem;
-        }
-
-        .form-group {
-            margin-bottom: 1rem;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: var(--secondary-color);
-            font-weight: 500;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 0.75rem;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 1rem;
-        }
-
-    </style>
-
-    <!-- Encouragement Modal -->
-    <div id="encouragement-modal" class="modal" style="display: none;">
-        <div class="modal-content" style="max-width: 600px;">
-            <div class="modal-header">
-                <h3>Send Encouragement</h3>
-                <span class="close" onclick="closeEncouragementModal()">&times;</span>
-            </div>
-            <div class="modal-body">
-                <div id="encouragement-form">
-                    <div style="margin-bottom: 1rem; padding: 1rem; background: var(--light-color); border-radius: 8px;">
-                        <p><strong><span id="encouraged-user-name">[User Name]</span></strong> just visited <strong><span id="blocked-site-name">pornhub.com</span></strong></p>
-                        <p style="color: #666; font-size: 0.9rem;">They need your encouragement right now!</p>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="encouragement-message">Your Encouraging Message</label>
-                        <textarea id="encouragement-message" rows="4" placeholder="Write a personal message of encouragement..."></textarea>
-                    </div>
-
-                    <div style="margin-bottom: 1rem;">
-                        <label style="font-weight: bold; margin-bottom: 0.5rem; display: block;">Message Library:</label>
-                        <div id="encouragement-templates" class="message-library"></div>
-                    </div>
-
-                    <div style="margin-bottom: 1rem; display: flex; gap: 1rem; flex-wrap: wrap;">
-                        <label style="display: flex; align-items: center; gap: 0.5rem;">
-                            <input type="checkbox" id="include-verse" checked>
-                            Include Bible verse
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 0.5rem;">
-                            <input type="checkbox" id="include-prayer">
-                            Add prayer request
-                        </label>
-                    </div>
-
-                    <button class="btn" onclick="sendEncouragement()" style="width: 100%;">Send Encouragement</button>
-                </div>
-                <div id="encouragement-success" style="display: none; text-align: center;">
-                    <i class="fas fa-check-circle" style="font-size: 3rem; color: var(--success-color); margin-bottom: 1rem;"></i>
-                    <h3>Encouragement Sent!</h3>
-                    <p>Your message of hope and encouragement has been delivered to help them through this moment.</p>
-                    <button class="btn" onclick="closeEncouragementModal()" style="margin-top: 1rem;">Continue</button>
-                    <button class="btn" onclick="closeEncouragementModal(); showChat()" style="margin-top: 1rem; background: var(--success-color);">
-                        <i class="fas fa-comments"></i> Start Chat
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <style>
-        .message-library {
-            max-height: 300px;
-            overflow-y: auto;
-            border: 1px solid #eee;
-            border-radius: 8px;
-            padding: 1rem;
-            background: var(--accent-color);
-        }
-
-        .template-btn {
-            background: var(--accent-color);
-            border: 1px solid #ddd;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin: 0.25rem;
-            display: inline-block;
-        }
-
-        .template-btn:hover {
-            background: var(--primary-color);
-            color: white;
-            border-color: var(--primary-color);
-        }
-
-        .message-category {
-            margin-bottom: 1rem;
-        }
-
-        .category-title {
-            font-size: 0.9rem;
-            font-weight: bold;
-            color: var(--secondary-color);
-            margin-bottom: 0.5rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .category-messages {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
-
-        textarea {
-            width: 100%;
-            padding: 0.75rem;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-family: inherit;
-            resize: vertical;
-            min-height: 100px;
-        }
-
-        .form-group textarea:focus {
-            outline: none;
-            border-color: var(--primary-color);
-        }
-    </style>
-
-    <!-- Progress Analytics Modal -->
-    <div id="progress-modal" class="modal" style="display: none;">
-        <div class="modal-content" style="max-width: 900px; width: 90%;">
-            <div class="modal-header">
-                <h3>Your Accountability Impact</h3>
-                <span class="close" onclick="closeProgressModal()">&times;</span>
-            </div>
-            <div class="modal-body">
-                <!-- Chart Section -->
-                <div style="margin-bottom: 2rem;">
-                    <canvas id="progress-chart" width="800" height="400"></canvas>
-                </div>
-
-                <!-- Insights Grid -->
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
-                    <div class="insight-card">
-                        <i class="fas fa-heart" style="font-size: 2rem; color: #8B1538; margin-bottom: 0.5rem;"></i>
-                        <h4>Total Encouragements</h4>
-                        <div class="insight-number" id="total-encouragements">0</div>
-                        <p>Messages of hope sent this year</p>
-                    </div>
-                    <div class="insight-card">
-                        <i class="fas fa-trophy" style="font-size: 2rem; color: #27AE60; margin-bottom: 0.5rem;"></i>
-                        <h4>Milestones Celebrated</h4>
-                        <div class="insight-number" id="total-milestones">0</div>
-                        <p>Victory moments shared with others</p>
-                    </div>
-                    <div class="insight-card">
-                        <i class="fas fa-users" style="font-size: 2rem; color: #F39C12; margin-bottom: 0.5rem;"></i>
-                        <h4>Partners Supported</h4>
-                        <div class="insight-number" id="total-partners">0</div>
-                        <p>Individual lives you've impacted</p>
-                    </div>
-                    <div class="insight-card">
-                        <i class="fas fa-percentage" style="font-size: 2rem; color: #9B59B6; margin-bottom: 0.5rem;"></i>
-                        <h4>Success Rate</h4>
-                        <div class="insight-number" id="success-rate">0%</div>
-                        <p>Encouragements leading to progress</p>
-                    </div>
-                </div>
-
-                <!-- Key Insights -->
-                <div style="background: var(--light-color); padding: 1.5rem; border-radius: 10px; margin-bottom: 1.5rem;">
-                    <h4 style="margin-bottom: 1rem; color: var(--secondary-color);">
-                        <i class="fas fa-lightbulb" style="margin-right: 0.5rem;"></i>
-                        Key Insights
-                    </h4>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
-                        <div>
-                            <strong>Best Month:</strong> <span id="best-month">July</span><br>
-                            <small>Highest encouragement activity</small>
-                        </div>
-                        <div>
-                            <strong>Most Effective Time:</strong> Evenings<br>
-                            <small>Best response rates 6-9 PM</small>
-                        </div>
-                        <div>
-                            <strong>Growth Trend:</strong> +23% this quarter<br>
-                            <small>Consistent improvement in impact</small>
-                        </div>
-                    </div>
-                </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <style>
-        .insight-card {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-
-        .insight-number {
-            font-size: 2rem;
-            font-weight: bold;
-            color: var(--primary-color);
-            margin: 0.5rem 0;
-        }
-
-        .insight-card h4 {
-            margin-bottom: 0.5rem;
-            color: var(--secondary-color);
-        }
-
-        .insight-card p {
-            color: #666;
-            font-size: 0.9rem;
-        }
-    </style>
-
-    <!-- Real-time Chat Modal -->
-    <div id="chat-modal" class="modal" style="display: none;">
-        <div class="modal-content" style="max-width: 800px; width: 90%; height: 80vh;">
-            <div class="modal-header">
-                <h3>Real-time Chat</h3>
-                <span class="close" onclick="closeChat()">&times;</span>
-            </div>
-            <div class="modal-body" style="display: flex; flex-direction: column; height: calc(100% - 80px);">
-                <!-- Partner Selection -->
-                <div style="margin-bottom: 1rem;">
-                    <label for="chat-partner-select" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Chat with:</label>
-                    <select id="chat-partner-select" style="width: 100%; padding: 0.5rem; border: 2px solid #ddd; border-radius: 8px;" onchange="loadChatHistory(this.value)">
-                        <!-- Partners will be loaded here -->
-                    </select>
-                </div>
-
-                <!-- Chat Messages -->
-                <div id="chat-messages" style="flex: 1; overflow-y: auto; padding: 1rem; background: var(--accent-color); border-radius: 8px; margin-bottom: 1rem;">
-                    <!-- Messages will be loaded here -->
-                </div>
-
-                <!-- Message Input -->
-                <div style="display: flex; gap: 0.5rem;">
-                    <input type="text" id="chat-message-input" placeholder="Type your message..." style="flex: 1; padding: 0.75rem; border: 2px solid #ddd; border-radius: 8px;">
-                    <button class="btn" onclick="sendChatMessage()">
-                        <i class="fas fa-paper-plane"></i> Send
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <style>
-        .chat-message {
-            margin-bottom: 1rem;
-            padding: 0.75rem;
-            border-radius: 8px;
-            max-width: 80%;
-        }
-
-        .chat-message-me {
-            background: var(--primary-color);
-            color: white;
-            margin-left: auto;
-            text-align: right;
-        }
-
-        .chat-message-them {
-            background: white;
-            border: 1px solid #eee;
-            margin-right: auto;
-        }
-
-        .message-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 0.25rem;
-            font-size: 0.85rem;
-            opacity: 0.8;
-        }
-
-        .chat-message-me .message-header {
-            flex-direction: row-reverse;
-        }
-
-        .message-content {
-            line-height: 1.4;
-        }
-
-        .message-time {
-            font-size: 0.8rem;
-            opacity: 0.7;
-        }
-
-        #chat-messages::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        #chat-messages::-webkit-scrollbar-track {
-            background: var(--accent-color);
-            border-radius: 3px;
-        }
-
-        #chat-messages::-webkit-scrollbar-thumb {
-            background: var(--primary-color);
-            border-radius: 3px;
-        }
-
-        #chat-messages::-webkit-scrollbar-thumb:hover {
-            background: #ffffff;
-        }
-    </style>
-
-    <!-- Celebration Animations -->
-    <style>
-        @keyframes celebrationFade {
-            0% { opacity: 1; }
-            70% { opacity: 1; }
-            100% { opacity: 0; }
-        }
-
-        @keyframes confettiFall {
-            0% {
-                transform: translateY(-10px) rotate(0deg);
-                opacity: 1;
-            }
-            100% {
-                transform: translateY(100vh) rotate(720deg);
-                opacity: 0;
-            }
-        }
-
-        @keyframes milestonePulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-
-        .milestone-reached {
-            animation: milestonePulse 2s ease-in-out;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 2rem;
-            color: #666;
-        }
-
-        .empty-state h4 {
-            margin-bottom: 0.5rem;
+            font-family: Arial, sans-serif;
+            background-color: #ffffff; /* fixed red background */
             color: #333;
         }
 
-        .empty-state p {
-            margin-bottom: 1.5rem;
-            max-width: 300px;
-            margin-left: auto;
-            margin-right: auto;
+        header {
+            background-color: #ffffff;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
+
+        #welcome-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        #user-name, #user-avatar {
+            display: inline-block;
+            margin-left: 10px;
+        }
+
+        /* Cached dashboard layout */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            padding: 20px;
+        }
+
+        .feature-btn {
+            padding: 15px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .feature-btn:hover {
+            background-color: #0056b3;
+        }
+
+        /* Notifications and modals */
+        .notification, .modal {
+            background-color: #f9f9f9;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
     </style>
+</head>
+<body>
+    <header>
+        <div id="welcome-name">Thank you for being an accountability Hero, partner.</div>
+        <div>
+            <span id="user-avatar"></span>
+            <span id="user-name"></span>
+        </div>
+    </header>
 
-    <script>// Local Authentication System (from index.html)
-class LocalAuth {
-    static register(email, password, name) {
-        const users = JSON.parse(localStorage.getItem('victory_users') || '[]');
-        if (users.find(u => u.email === email)) {
-            throw new Error('User already exists');
+    <!-- Cached dashboard content -->
+    <section class="stats-grid">
+        <!-- Example stat boxes from cached version -->
+        <div class="stat-box">Tasks Completed</div>
+        <div class="stat-box">Sites Blocked</div>
+        <div class="stat-box">Partners Connected</div>
+    </section>
+
+    <section class="features-grid">
+        <!-- Example feature buttons -->
+        <button class="feature-btn" id="encouragement-btn">Send Encouragement</button>
+        <button class="feature-btn" id="partner-btn">Add Partner</button>
+        <button class="feature-btn" id="notifications-btn">View Notifications</button>
+    </section>
+
+    <!-- Modals and hidden sections from cached dashboard -->
+    <div id="encouragement-form" style="display:none;">
+        <textarea id="encouragement-message"></textarea>
+        <button id="send-encouragement-btn">Send</button>
+    </div>
+    <div id="encouragement-success" style="display:none;">Message sent!</div>
+
+    <!-- Scripts -->
+    <script type="module">
+        // Stable auth system from current dashboard
+        class LocalAuth {
+            static register(email, password, name) {
+                const users = JSON.parse(localStorage.getItem('victory_users') || '[]');
+                if (users.find(u => u.email === email)) throw new Error('User already exists');
+                const user = { id: Date.now().toString(), email, password, name, createdAt: new Date().toISOString() };
+                users.push(user);
+                localStorage.setItem('victory_users', JSON.stringify(users));
+                localStorage.setItem('victory_current_user', JSON.stringify(user));
+                return user;
+            }
+
+            static login(email, password) {
+                const users = JSON.parse(localStorage.getItem('victory_users') || '[]');
+                const user = users.find(u => u.email === email && u.password === password);
+                if (!user) throw new Error('Invalid email or password');
+                localStorage.setItem('victory_current_user', JSON.stringify(user));
+                return user;
+            }
+
+            static logout() {
+                localStorage.removeItem('victory_current_user');
+                window.location.href = 'index.html';
+            }
+
+            static getCurrentUser() {
+                const user = localStorage.getItem('victory_current_user');
+                return user ? JSON.parse(user) : null;
+            }
+
+            static onAuthStateChanged(callback) {
+                const user = this.getCurrentUser();
+                callback(user); // single execution to prevent loops
+            }
         }
-        const user = {
-            id: Date.now().toString(),
-            email,
-            password, // In production, hash this
-            name,
-            createdAt: new Date().toISOString()
-        };
-        users.push(user);
-        localStorage.setItem('victory_users', JSON.stringify(users));
-        localStorage.setItem('victory_current_user', JSON.stringify(user));
-        return user;
-    }
 
-    static login(email, password) {
-        const users = JSON.parse(localStorage.getItem('victory_users') || '[]');
-        const user = users.find(u => u.email === email && u.password === password);
-        if (!user) {
-            throw new Error('Invalid email or password');
-        }
-        localStorage.setItem('victory_current_user', JSON.stringify(user));
-        return user;
-    }
+        // Dynamic display name and avatar
+        document.addEventListener("DOMContentLoaded", () => {
+            const user = LocalAuth.getCurrentUser();
+            const displayName = user && user.name ? user.name : "partner";
 
-    static logout() {
-        localStorage.removeItem('victory_current_user');
-        window.location.href = 'index.html';
-    }
+            const welcomeEl = document.getElementById('welcome-name');
+            if(welcomeEl) welcomeEl.textContent = `Thank you for being an accountability Hero, ${displayName}.`;
 
-    static getCurrentUser() {
-        const user = localStorage.getItem('victory_current_user');
-        return user ? JSON.parse(user) : null;
-    }
+            const userNameEl = document.getElementById('user-name');
+            if(userNameEl) userNameEl.textContent = displayName;
 
-    static onAuthStateChanged(callback) {
-        const user = this.getCurrentUser();
-        callback(user);
-        // Run only once - no polling to prevent redirect loops
-    }
-}
+            const userAvatarEl = document.getElementById('user-avatar');
+            if(userAvatarEl) userAvatarEl.textContent = displayName.charAt(0).toUpperCase();
+        });
 
+        // Example feature button handlers from cached version
+        document.getElementById('encouragement-btn')?.addEventListener('click', () => {
+            document.getElementById('encouragement-form').style.display = 'block';
+        });
 
-// Listen for notifications from Victory extension
-function listenForNotifications(user) {
-    // Listen for notifications where this user is a partner
-    const notificationsRef = query(
-        collection(db, 'notifications'),
-        where('partnerIds', 'array-contains', user.uid)
-    );
+        document.getElementById('send-encouragement-btn')?.addEventListener('click', () => {
+            const message = document.getElementById('encouragement-message').value;
+            if(!message.trim()) { alert('Please enter a message'); return; }
+            console.log('Encouragement sent:', message);
+            document.getElementById('encouragement-form').style.display = 'none';
+            document.getElementById('encouragement-success').style.display = 'block';
+        });
 
-    onSnapshot(notificationsRef, (snapshot) => {
-        snapshot.docChanges().forEach((change) => {
-            if (change.type === 'added') {
-                const notification = change.doc.data();
-                if (!notification.read) {
-                    showBlockNotification(notification);
-                }
+        document.getElementById('partner-btn')?.addEventListener('click', () => {
+            console.log('Add partner clicked');
+        });
+
+        document.getElementById('notifications-btn')?.addEventListener('click', () => {
+            console.log('View notifications clicked');
+        });
+
+        // Auth check to prevent dashboard loop
+        LocalAuth.onAuthStateChanged((user) => {
+            if(!user) {
+                window.location.href = 'index.html';
+                return;
             }
         });
-    });
-}
-
-// Show notification when extension blocks a site
-function showBlockNotification(notification) {
-    // Create notification element
-    const notificationDiv = document.createElement('div');
-    notificationDiv.className = 'block-notification';
-    notificationDiv.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: #ffeaa7; border: 2px solid #d63031; border-radius: 8px; margin-bottom: 1rem;">
-            <i class="fas fa-exclamation-triangle" style="color: #d63031; font-size: 1.5rem;"></i>
-            <div style="flex: 1;">
-                <strong>Accountability Alert!</strong><br>
-                <span id="notification-message">${notification.message}</span><br>
-                <small style="color: #666;">${new Date(notification.timestamp?.toDate?.() || Date.now()).toLocaleString()}</small>
-            </div>
-            <button onclick="openEncouragementModal('${notification.userId}', '${notification.userName}', '${notification.url}')" style="background: #d63031; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;">
-                Send Encouragement
-            </button>
-        </div>
-    `;
-
-    // Add to page
-    const container = document.querySelector('.container');
-    container.insertBefore(notificationDiv, container.firstChild);
-
-    // Auto-remove after 30 seconds
-    setTimeout(() => {
-        if (notificationDiv.parentNode) {
-            notificationDiv.remove();
-        }
-    }, 30000);
-}
-
-// Connect with partner using invite code
-async function connectPartner() {
-    const partnerCode = document.getElementById('partner-code').value.trim().toUpperCase();
-    
-    if (!partnerCode || partnerCode.length !== 6) {
-        alert('Please enter a valid 6-character invite code');
-        return;
-    }
-
-    try {
-        const user = window.firebaseAuth.currentUser;
-        if (!user) {
-            alert('Please sign in first');
-            return;
-        }
-
-        // Find user with this invite code
-        const usersRef = window.firestore.collection(window.db, 'users');
-        const q = window.firestore.query(usersRef, window.firestore.where('inviteCode', '==', partnerCode));
-        const querySnapshot = await window.firestore.getDocs(q);
-        
-        if (querySnapshot.empty) {
-            alert('Invalid invite code. Please check the code and try again.');
-            return;
-        }
-
-        const partnerDoc = querySnapshot.docs[0];
-        const partnerData = partnerDoc.data();
-        
-        if (partnerData.uid === user.uid) {
-            alert('You cannot connect with yourself!');
-            return;
-        }
-
-        // Check if already connected
-        const userDocRef = window.firestore.doc(window.db, 'users', user.uid);
-        const userDoc = await window.firestore.getDoc(userDocRef);
-        const userData = userDoc.data();
-        
-        if (userData.partners && userData.partners.includes(partnerData.uid)) {
-            alert('You are already connected with this partner!');
-            return;
-        }
-
-        // Add partner relationship (bidirectional)
-        const partnerDocRef = window.firestore.doc(window.db, 'users', partnerData.uid);
-        
-        // Update current user
-        await window.firestore.updateDoc(userDocRef, {
-            partners: window.firestore.arrayUnion(partnerData.uid),
-            partnerNames: window.firestore.arrayUnion(partnerData.displayName || partnerData.email)
-        });
-
-        // Update partner
-        await window.firestore.updateDoc(partnerDocRef, {
-            partners: window.firestore.arrayUnion(user.uid),
-            partnerNames: window.firestore.arrayUnion(user.displayName || user.email)
-        });
-
-        alert(`Successfully connected with ${partnerData.displayName || partnerData.email}! You will now receive notifications when they need encouragement.`);
-        
-        // Close modal and refresh
-        closeInviteModal();
-        location.reload(); // Refresh to show new partner
-        return;
-        
-    } catch (error) {
-        console.error('Error connecting partner:', error);
-        alert('Failed to connect partner. Please try again.');
-    }
-
-    const container = document.getElementById('encouragement-templates');
-    if (!container) return;
-    
-    container.innerHTML = '';
-    
-    if (templates && typeof templates === 'object') {
-        Object.keys(templates).forEach(category => {
-            const categoryDiv = document.createElement('div');
-            categoryDiv.className = 'message-category';
-            categoryDiv.innerHTML = `
-                <div class="category-title">${category}</div>
-                <div class="category-messages">
-                    ${templates[category].map(msg => 
-                        `<button class="template-btn" onclick="selectTemplate('${msg.replace(/'/g, "\\'")}')">${msg.substring(0, 30)}...</button>`
-                    ).join('')}
-                </div>
-            `;
-            container.appendChild(categoryDiv);
-        });
-    }
-}
-
-
-function selectTemplate(message) {
-    document.getElementById('encouragement-message').value = message;
-}
-
-function sendEncouragement() {
-    const message = document.getElementById('encouragement-message').value;
-    if (!message.trim()) {
-        alert('Please enter a message');
-        return;
-    }
-    
-    // In real implementation, this would send to backend
-    console.log('Encouragement sent:', message);
-    
-    document.getElementById('encouragement-form').style.display = 'none';
-    document.getElementById('encouragement-success').style.display = 'block';
-}
-
-// Load initial data
-// document.addEventListener('DOMContentLoaded', () => {
-//     // Check auth on page load
-//     const user = LocalAuth.getCurrentUser();
-//     if (!user) {
-//         window.location.href = 'login.html';
-//     }
-// });</script>    </script>
+    </script>
 </body>
 </html>
-
-
-
-
-
-
-
