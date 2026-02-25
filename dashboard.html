@@ -51,7 +51,9 @@
             const welcomeNameEl = document.getElementById('welcome-name');
             if (welcomeNameEl) {
                 const user = LocalAuth.getCurrentUser();
+                console.log('Retrieved user:', user); // Debug: Check user object
                 const displayName = user && user.name ? user.name : "partner";
+                console.log('Display name:', displayName); // Debug: Check display name
                 welcomeNameEl.textContent = displayName;
             }
         });
