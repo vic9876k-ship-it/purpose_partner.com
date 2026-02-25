@@ -9,7 +9,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <!-- Firebase SDK for Auth + Firestore -->
 <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
+    import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
     import { 
         getAuth, 
         signInWithEmailAndPassword, 
@@ -50,7 +50,7 @@
     };
 
     // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
+    const app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0];
     const auth = getAuth(app);
     const db = getFirestore(app);
     const googleProvider = new GoogleAuthProvider();
@@ -166,21 +166,41 @@
     let authResolved = false;
 
     console.log("Page:", window.location.pathname);
-    window.firebaseAuth.onAuthStateChanged(window.auth, (user) => {
-        console.log("Login page auth state:", user);
-        if (authResolved) return;
-        authResolved = true;
+    
+    if (!window.__authListenerAttached) {
+        window.__authListenerAttached = true;
+        
+        window.firebaseAuth.onAuthStateChanged(window.auth, (user) => {
+            console.log("Login page auth state:", user);
+            if (authResolved) return;
+            authResolved = true;
 
-        if (user) {
-            // if (!window.location.pathname.endsWith("dashboard.html")) {
-            //     window.location.replace("dashboard.html");
-            // }
-        }
-    });
+            if (user) {
+                // if (!window.location.pathname.endsWith("dashboard.html")) {
+                //     window.location.replace("dashboard.html");
+                // }
+            }
+        });
+    }
 
     // Make functions globally available
     window.handleSignIn = handleSignIn;
     window.handleGoogleSignIn = handleGoogleSignIn;
+
+    // Prevent duplicate Google button listener
+    document.addEventListener('DOMContentLoaded', () => {
+        const btn = document.getElementById("googleSignIn");
+        
+        if (!btn || !btn.dataset.listenerAttached) {
+            if (btn) {
+                btn.dataset.listenerAttached = "true";
+                btn.addEventListener("click", async () => {
+                    console.log("Google sign in triggered");
+                    await handleGoogleSignIn();
+                });
+            }
+        }
+    });
 </script>
 <style>
     :root {
@@ -366,7 +386,7 @@
             <span>OR</span>
         </div>
 
-        <button onclick="handleGoogleSignIn()" class="btn btn-google">
+        <button id="googleSignIn" onclick="handleGoogleSignIn()" class="btn btn-google">
             <i class="fab fa-google"></i>
             Continue with Google
         </button>
