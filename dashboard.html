@@ -42,11 +42,9 @@
                 // Render user info only once
                 const userNameEl = document.getElementById('user-name');
                 const userEmailEl = document.getElementById('user-email');
-                const welcomeEl = document.getElementById('dashboard-welcome');
                 
                 if (userNameEl) userNameEl.textContent = user.name || user.email;
                 if (userEmailEl) userEmailEl.textContent = user.email;
-                if (welcomeEl) welcomeEl.textContent = "Welcome, " + (user.name || user.email);
             }
         });
 
@@ -386,6 +384,11 @@
             margin-bottom: 2rem;
         }
 
+        .human-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
         .stat-card {
             background: white;
             padding: 1.5rem;
@@ -603,7 +606,6 @@
     </style>
 </head>
 <body>
-    <h1 id="dashboard-welcome">Welcome</h1>
     <!-- Navigation -->
     <nav>
         <div class="nav-left">
@@ -640,22 +642,22 @@
         <!-- Stats Cards -->
         <div class="stats-grid">
             <div class="stat-card">
-                <i class="fas fa-hands-helping"></i>
+                <div class="human-icon">👥</div>
                 <div class="stat-number" id="partners-helped">0</div>
                 <div class="stat-label">People You're Helping</div>
             </div>
             <div class="stat-card">
-                <i class="fas fa-fire"></i>
+                <div class="human-icon">💬</div>
                 <div class="stat-number" id="encouragements-sent">0</div>
                 <div class="stat-label">Encouragements Sent</div>
             </div>
             <div class="stat-card">
-                <i class="fas fa-pray"></i>
+                <div class="human-icon">🙏</div>
                 <div class="stat-number" id="prayers-offered">0</div>
                 <div class="stat-label">Prayers Offered</div>
             </div>
             <div class="stat-card">
-                <i class="fas fa-trophy"></i>
+                <div class="human-icon">🏆</div>
                 <div class="stat-number" id="victories-celebrated">0</div>
                 <div class="stat-label">Victories Celebrated</div>
             </div>
