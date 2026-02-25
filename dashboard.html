@@ -46,6 +46,17 @@
                 if (userNameEl) userNameEl.textContent = user.name || user.email;
                 if (userEmailEl) userEmailEl.textContent = user.email;
             }
+            
+            // Update greeting safely
+            const welcomeNameEl = document.getElementById('welcome-name');
+            if (welcomeNameEl) {
+                const user = LocalAuth.getCurrentUser();
+                if (user && user.name) {
+                    welcomeNameEl.textContent = user.name + ".";
+                } else {
+                    welcomeNameEl.textContent = "partner.";
+                }
+            }
         });
 
         function initializeDashboard(user) {
@@ -641,7 +652,7 @@
         <!-- Dashboard Header -->
         <div class="dashboard-header">
             <div class="welcome-message">
-                <h1>Thank you for being an Accountability Hero, <span id="welcome-name">Partner</span>! ðŸ›¡ï¸</h1>
+                <h1>Thank you for being an Accountability Hero, <span id="welcome-name">Partner</span>.</h1>
                 <p>Your willingness to help others in their purity journey makes a real difference. You're appreciated!</p>
             </div>
             <div class="streak">
