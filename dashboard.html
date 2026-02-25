@@ -1241,11 +1241,7 @@ class LocalAuth {
     static onAuthStateChanged(callback) {
         const user = this.getCurrentUser();
         callback(user);
-        // Check for changes every 5 seconds (simple implementation)
-        setInterval(() => {
-            const currentUser = this.getCurrentUser();
-            callback(currentUser);
-        }, 5000);
+        // Run only once - no polling to prevent redirect loops
     }
 }
 
