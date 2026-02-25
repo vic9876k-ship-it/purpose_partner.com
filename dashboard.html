@@ -33,6 +33,21 @@
         // Initialize auth guard
         protectRoute("dashboard");
 
+        // Safe dynamic rendering after authentication confirmed
+        document.addEventListener('DOMContentLoaded', () => {
+            // Get current user using LocalAuth
+            const user = LocalAuth.getCurrentUser();
+            
+            if (user) {
+                // Render user info only once
+                const userNameEl = document.getElementById('user-name');
+                const userEmailEl = document.getElementById('user-email');
+                
+                if (userNameEl) userNameEl.textContent = user.name || user.email;
+                if (userEmailEl) userEmailEl.textContent = user.email;
+            }
+        });
+
         function initializeDashboard(user) {
             // Optional safety check for DOM elements
             const userNameEl = document.getElementById('user-name');
