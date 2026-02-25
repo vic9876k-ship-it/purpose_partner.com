@@ -48,13 +48,11 @@
             }
             
             // Update greeting safely
-            const welcomeNameEl = document.getElementById('welcome-name');
-            if (welcomeNameEl) {
-                const user = LocalAuth.getCurrentUser();
-                console.log('Retrieved user:', user); // Debug: Check user object
-                const displayName = user && user.name ? user.name : "partner";
-                console.log('Display name:', displayName); // Debug: Check display name
-                welcomeNameEl.textContent = displayName;
+            const currentUser = LocalAuth.getCurrentUser();
+            const displayName = currentUser && currentUser.name ? currentUser.name : "partner";
+            const greetingEl = document.getElementById("greeting");
+            if (greetingEl) {
+                greetingEl.textContent = `Thank you for being an accountability Hero, ${displayName}.`;
             }
         });
 
@@ -651,7 +649,7 @@
         <!-- Dashboard Header -->
         <div class="dashboard-header">
             <div class="welcome-message">
-                <h1>Thank you for being an Accountability Hero, <span id="welcome-name">Partner</span>.</h1>
+                <h2 id="greeting">Thank you for being an accountability Hero, partner.</h2>
                 <p>Your willingness to help others in their purity journey makes a real difference. You're appreciated!</p>
             </div>
             <div class="streak">
