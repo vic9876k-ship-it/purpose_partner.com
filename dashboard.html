@@ -48,15 +48,17 @@
             }
             
             // Update greeting safely
-            const welcomeNameEl = document.getElementById('welcome-name');
-            if (welcomeNameEl) {
-                const user = LocalAuth.getCurrentUser();
-                if (user && user.name) {
-                    welcomeNameEl.textContent = user.name;
-                } else {
-                    welcomeNameEl.textContent = "partner";
+            setTimeout(() => {
+                const welcomeNameEl = document.getElementById('welcome-name');
+                if (welcomeNameEl) {
+                    const user = LocalAuth.getCurrentUser();
+                    if (user && user.name) {
+                        welcomeNameEl.textContent = user.name;
+                    } else {
+                        welcomeNameEl.textContent = "partner";
+                    }
                 }
-            }
+            }, 100);
         });
 
         function initializeDashboard(user) {
