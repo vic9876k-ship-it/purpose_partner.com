@@ -393,54 +393,72 @@
         window.firebaseReady = true;
         console.log('Firebase initialized and ready');
 
-        // Simple authentication for dashboard - DISABLED for phone to prevent 403 errors
-        // window.firebaseAuth.onAuthStateChanged(window.auth, (user) => {
-        //     if (!user) {
-        //         window.location.href = 'login.html';
-        //         return;
-        //     }
-        // 
-        //     // Update UI
-        //     document.getElementById('user-name').textContent = user.displayName || user.email;
-        //     document.getElementById('user-avatar').textContent = (user.displayName || user.email).charAt(0).toUpperCase();
-        //     document.getElementById('welcome-name').textContent = `Welcome, ${user.displayName || 'Partner'}!`;
-        // 
-        //     // Load dashboard data
-        //     loadDashboardData(user);
-        //     
-        //     // Start notification listener
-        //     listenForNotifications();
-        // });
+        // LocalAuth class for GitHub Pages compatibility
+        class LocalAuth {
+            static register(email, password, name) {
+                const users = JSON.parse(localStorage.getItem('victory_users') || '[]');
+                if (users.find(u => u.email === email)) throw new Error('User already exists');
+                const user = { id: Date.now().toString(), email, password, name, createdAt: new Date().toISOString() };
+                users.push(user);
+                localStorage.setItem('victory_users', JSON.stringify(users));
+                localStorage.setItem('victory_current_user', JSON.stringify(user));
+                return user;
+            }
 
-        // Simple logout - DISABLED for phone to prevent 403 errors
-        function signOut() {
-            console.log('Sign out disabled - Firebase auth is disabled on phone side');
-        }
+            static login(email, password) {
+                const users = JSON.parse(localStorage.getItem('victory_users') || '[]');
+                const user = users.find(u => u.email === email && u.password === password);
+                if (!user) throw new Error('Invalid email or password');
+                localStorage.setItem('victory_current_user', JSON.stringify(user));
+                return user;
+            }
 
-        // Load dashboard data
-        async function loadDashboardData(user) {
-            try {
-                // Skip authenticated reads for now - just use local data
-                console.log('Dashboard loaded for user:', user.email);
-                
-                // Fallback data
-                document.getElementById('partners-count').textContent = '0';
-                document.getElementById('encouragements-count').textContent = '0';
-                document.getElementById('victories-count').textContent = '0';
-                document.getElementById('days-active').textContent = '1';
-                
-                // Check extension and start notifications
-                loadConnectedPartners(); // Re-enabled with public collection
-                listenForNotifications(); // Re-enabled with public collection
-            } catch (error) {
-                console.error('Error loading dashboard data:', error);
-                // Fallback data
-                document.getElementById('partners-count').textContent = '0';
-                document.getElementById('encouragements-count').textContent = '0';
-                document.getElementById('victories-count').textContent = '0';
-                document.getElementById('days-active').textContent = '1';
+            static logout() {
+                localStorage.removeItem('victory_current_user');
+                window.location.href = 'index.html';
+            }
+
+            static getCurrentUser() {
+                const user = localStorage.getItem('victory_current_user');
+                return user ? JSON.parse(user) : null;
             }
         }
+
+        // Simple logout
+        function signOut() {
+            LocalAuth.logout();
+        }
+
+        // Initialize dashboard on page load
+        document.addEventListener("DOMContentLoaded", () => {
+            // Check auth using LocalAuth
+            const user = LocalAuth.getCurrentUser();
+
+            if (!user) {
+                window.location.href = "index.html";
+                return;
+            }
+
+            const displayName = user.name ? user.name.trim() : "User";
+
+            // Update welcome message
+            const welcomeElement = document.getElementById("welcome-name");
+            if (welcomeElement) {
+                welcomeElement.textContent = `Thank you for being an accountability Hero, ${displayName}.`;
+            }
+
+            // Update username
+            const usernameElement = document.getElementById("user-name");
+            if (usernameElement) {
+                usernameElement.textContent = displayName;
+            }
+
+            // Update avatar
+            const avatarElement = document.getElementById("user-avatar");
+            if (avatarElement) {
+                avatarElement.textContent = displayName.charAt(0).toUpperCase();
+            }
+        });
 
         // Partner Integration Functions
         let connectedPartners = [];
@@ -882,27 +900,7 @@
         }
     </script>
     
-    <script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const user = JSON.parse(localStorage.getItem('victory_current_user'));
-
-        if (!user) {
-            window.location.href = "index.html";
-            return;
-        }
-
-        const displayName = user.name ? user.name.trim() : "User";
-
-        const avatar = document.getElementById("user-avatar");
-        if (avatar) {
-            avatar.textContent = displayName.charAt(0).toUpperCase();
-        }
-
-        const username = document.getElementById("user-name");
-        if (username) {
-            username.textContent = displayName;
-        }
-    });
-    </script>
+    <!-- Notifications Module -->
+    <script type="module" src="./pwa-notifications.js"></script>
 </body>
 </html>
