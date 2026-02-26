@@ -283,15 +283,26 @@
                 return;
             }
 
-            const displayName = user.displayName || user.email;
+            // Get display name with proper fallbacks
+            const displayName = user.displayName || user.email || "Partner";
+            
+            // Update welcome message safely
             const welcomeEl = document.getElementById('welcome-name');
-            if (welcomeEl) welcomeEl.textContent = `Thank you for being an accountability Hero, ${displayName}.`;
+            if (welcomeEl) {
+                welcomeEl.textContent = `Thank you for being an accountability Hero, ${displayName}.`;
+            }
 
+            // Update username safely
             const userNameEl = document.getElementById('user-name');
-            if (userNameEl) userNameEl.textContent = displayName;
+            if (userNameEl) {
+                userNameEl.textContent = displayName;
+            }
 
+            // Update avatar safely
             const userAvatarEl = document.getElementById('user-avatar');
-            if (userAvatarEl) userAvatarEl.textContent = displayName.charAt(0).toUpperCase();
+            if (userAvatarEl) {
+                userAvatarEl.textContent = displayName.charAt(0).toUpperCase();
+            }
         });
     });
 
