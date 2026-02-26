@@ -272,28 +272,10 @@
                     <button class="btn">View Notifications</button>
                 </div>
                 <div class="feature-item">
-                    <i class="fas fa-comments"></i>
-                    <h4>Send Encouragement</h4>
-                    <p>Share biblical encouragement and prayer support with those you're helping on their journey.</p>
-                    <button class="btn">Send Message</button>
-                </div>
-                <div class="feature-item">
                     <i class="fas fa-chart-line"></i>
                     <h4>Track Progress</h4>
                     <p>Monitor the impact of your encouragement and celebrate victories together.</p>
                     <button class="btn">View Stats</button>
-                </div>
-                <div class="feature-item">
-                    <i class="fas fa-pairing"></i>
-                    <h4>Community Support</h4>
-                    <p>Connect with other accountability partners and share experiences in the community.</p>
-                    <button class="btn">Join Community</button>
-                </div>
-                <div class="feature-item">
-                    <i class="fas fa-pray"></i>
-                    <h4>Prayer Requests</h4>
-                    <p>Share prayer requests and lift up your accountability partners in prayer.</p>
-                    <button class="btn">Prayer Wall</button>
                 </div>
                 <div class="feature-item">
                     <i class="fas fa-book"></i>
@@ -812,9 +794,6 @@
                     <button onclick="this.parentElement.parentElement.remove()" style="background: none; border: none; cursor: pointer;">×</button>
                 </div>
                 <div style="margin-top: 1rem;">
-                    <button class="btn" style="font-size: 0.8rem; padding: 0.5rem 1rem;" onclick="sendEncouragement('${alert.userId}', '${alert.id}')">
-                        Send Encouragement
-                    </button>
                 </div>
             `;
             document.body.appendChild(modal);
@@ -827,12 +806,6 @@
             }, 10000);
         }
 
-        // Send encouragement to partner
-        async function sendEncouragement(partnerId, alertId) {
-            // Disabled to avoid 403 errors
-            console.log('Send encouragement disabled to prevent permission errors');
-            return;
-        }
 
         // Add event listeners to dashboard buttons
         document.addEventListener('DOMContentLoaded', function() {
@@ -847,17 +820,8 @@
                         case 'View Notifications':
                             showNotifications();
                             break;
-                        case 'Send Message':
-                            showSendMessageModal();
-                            break;
                         case 'View Stats':
                             showDetailedStats();
-                            break;
-                        case 'Join Community':
-                            showCommunity();
-                            break;
-                        case 'Prayer Wall':
-                            showPrayerWall();
                             break;
                         case 'Browse Resources':
                             showResources();
@@ -876,24 +840,12 @@
             alert('Notifications feature coming soon! You\'ll see alerts when partners need encouragement.');
         }
 
-        function showSendMessageModal() {
-            const message = prompt('Enter your encouragement message:');
-            if (message) {
-                alert('Message sent: "' + message + '"\n\n(This will be connected to real messaging soon!)');
-            }
-        }
 
         function showDetailedStats() {
             alert('Detailed statistics coming soon!\n\nYou\'ll be able to see:\n- Daily/weekly/monthly activity\n- Partner engagement levels\n- Victory celebrations\n- Prayer requests answered');
         }
 
-        function showCommunity() {
-            alert('Community feature coming soon!\n\nConnect with other accountability partners and share experiences.');
-        }
 
-        function showPrayerWall() {
-            alert('Prayer Wall coming soon!\n\nShare prayer requests and lift up your partners in prayer.');
-        }
 
         function showResources() {
             alert('Biblical Resources coming soon!\n\nAccess curated Bible verses and devotionals for encouragement and strength.');
