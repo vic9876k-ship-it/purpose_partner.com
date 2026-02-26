@@ -220,129 +220,80 @@
         </div>
     </div>
 
-    <script>
-    document.addEventListener("DOMContentLoaded", () => {
+    <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
+    import { getFirestore, doc, setDoc } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
 
-        // ----- LocalAuth class -----
-        class LocalAuth {
-            static register(email, password, displayName) {
-                const users = JSON.parse(localStorage.getItem('victory_users') || '[]');
+    // Firebase config
+    const firebaseConfig = {
+        apiKey: "AIzaSyC4HhpXcYdGhvFRIz4IHksilgnMnRDbiS8",
+        authDomain: "victory-fb944.firebaseapp.com",
+        projectId: "victory-fb944",
+        storageBucket: "victory-fb944.firebasestorage.app",
+        messagingSenderId: "650310438797",
+        appId: "1:650310438797:web:c0bd9a1caaa6093d5137c4"
+    };
 
-                if (users.find(u => u.email === email)) {
-                    throw new Error('Email already registered');
-                }
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-                const user = {
-                    id: Date.now().toString(),
-                    email,
-                    password,  // In production, hash this
-                    name: displayName,
-                    createdAt: new Date().toISOString()
-                };
+    // Use browser persistence
+    await setPersistence(auth, browserLocalPersistence);
 
-                users.push(user);
-                localStorage.setItem('victory_users', JSON.stringify(users));
-                localStorage.setItem('victory_current_user', JSON.stringify(user));
+    // ----- Signup -----
+    const signupForm = document.getElementById('signup-form');
+    if (signupForm) {
+        signupForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const displayName = document.getElementById('display-name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            const errorDiv = document.getElementById('error-message');
+            const successDiv = document.getElementById('success-message');
 
-                return user;
+            errorDiv.style.display = "none";
+            successDiv.style.display = "none";
+
+            if (password !== confirmPassword) {
+                errorDiv.textContent = 'Passwords do not match';
+                errorDiv.style.display = 'block';
+                return;
             }
 
-            static login(email, password) {
-                const users = JSON.parse(localStorage.getItem('victory_users') || '[]');
-                const user = users.find(u => u.email === email && u.password === password);
-
-                if (!user) throw new Error('Invalid email or password');
-
-                localStorage.setItem('victory_current_user', JSON.stringify(user));
-                return user;
+            if (password.length < 6) {
+                errorDiv.textContent = 'Password must be at least 6 characters';
+                errorDiv.style.display = 'block';
+                return;
             }
 
-            static logout() {
-                localStorage.removeItem('victory_current_user');
-                window.location.href = 'index.html';
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+
+                await updateProfile(user, { displayName });
+                await setDoc(doc(db, 'users', user.uid), {
+                    uid: user.uid,
+                    email: user.email,
+                    displayName,
+                    createdAt: new Date(),
+                    lastLogin: new Date()
+                }, { merge: true });
+
+                successDiv.textContent = 'Account created! Redirecting...';
+                successDiv.style.display = 'block';
+                setTimeout(() => window.location.href = 'dashboard.html', 1000);
+
+            } catch (err) {
+                console.error('Signup error:', err);
+                errorDiv.textContent = err.message || 'Signup error';
+                errorDiv.style.display = 'block';
             }
-
-            static getCurrentUser() {
-                const user = localStorage.getItem('victory_current_user');
-                return user ? JSON.parse(user) : null;
-            }
-        }
-
-        // ----- Signup Form -----
-        const signupForm = document.getElementById("signup-form");
-        if (signupForm) {
-            signupForm.addEventListener("submit", (e) => {
-                e.preventDefault();
-
-                const displayName = document.getElementById("display-name").value.trim();
-                const email = document.getElementById("email").value.trim();
-                const password = document.getElementById("password").value;
-                const confirmPassword = document.getElementById("confirm-password").value;
-                const errorDiv = document.getElementById("error-message");
-                const successDiv = document.getElementById("success-message");
-
-                errorDiv.style.display = "none";
-                successDiv.style.display = "none";
-
-                if (!displayName || !email || !password) {
-                    errorDiv.textContent = "All fields are required";
-                    errorDiv.style.display = "block";
-                    return;
-                }
-
-                if (password !== confirmPassword) {
-                    errorDiv.textContent = "Passwords do not match";
-                    errorDiv.style.display = "block";
-                    return;
-                }
-
-                if (password.length < 6) {
-                    errorDiv.textContent = "Password must be at least 6 characters";
-                    errorDiv.style.display = "block";
-                    return;
-                }
-
-                try {
-                    LocalAuth.register(email, password, displayName);
-                    successDiv.textContent = "Account created! Redirecting...";
-                    successDiv.style.display = "block";
-
-                    setTimeout(() => {
-                        window.location.href = "dashboard.html";
-                    }, 1000);
-                } catch (err) {
-                    errorDiv.textContent = err.message;
-                    errorDiv.style.display = "block";
-                }
-            });
-        }
-
-        // ----- Login Form -----
-        const loginForm = document.getElementById("login-form");
-        if (loginForm) {
-            loginForm.addEventListener("submit", (e) => {
-                e.preventDefault();
-
-                const email = document.getElementById("email").value.trim();
-                const password = document.getElementById("password").value;
-                const errorDiv = document.getElementById("error-message");
-
-                errorDiv.style.display = "none";
-
-                try {
-                    const user = LocalAuth.login(email, password);
-                    console.log("User logged in:", user);
-
-                    // Redirect to dashboard
-                    window.location.href = "dashboard.html";
-                } catch (err) {
-                    errorDiv.textContent = err.message;
-                    errorDiv.style.display = "block";
-                }
-            });
-        }
-
-    });
+        });
+    }
     </script>
 </body>
 </html>

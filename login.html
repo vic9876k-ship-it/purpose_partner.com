@@ -3,328 +3,176 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign In - PurposePartner</title>
-    <link rel="icon" type="image/png" href="icons/icon-192.png">
-    <link rel="apple-touch-icon" href="icons/icon-512.png">
+    <title>Login - PurposePartner</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <!-- Firebase SDK for Auth + Firestore -->
-<script type="module">
-    import "./firebaseInit.js";
-    import { protectRoute } from "./authGuard.js";
-    import { 
-        signInWithEmailAndPassword, 
-        createUserWithEmailAndPassword,
-        signInWithPopup,
-        GoogleAuthProvider,
-        signOut as firebaseSignOut,
-        updateProfile
-    } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-    import { 
-        collection, 
-        doc, 
-        addDoc, 
-        getDoc, 
-        getDocs, 
-        updateDoc, 
-        query, 
-        where, 
-        orderBy, 
-        limit, 
-        onSnapshot, 
-        deleteDoc, 
-        setDoc,
-        arrayUnion
-    } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
-
-    // Google provider
-    const googleProvider = new GoogleAuthProvider();
-    window.googleProvider = googleProvider;
-
-    // Ensure user document exists in Firestore
-    async function ensureUserDocument(user) {
-        const userDocRef = doc(window.db, 'users', user.uid);
-        const userDoc = await getDoc(userDocRef);
-        
-        if (!userDoc.exists()) {
-            // Create new user document with zero stats
-            await setDoc(userDocRef, {
-                uid: user.uid,
-                email: user.email,
-                displayName: user.displayName || user.email.split('@')[0],
-                createdAt: new Date().toISOString(),
-                lastLogin: new Date().toISOString(),
-                partners: [],
-                encouragementCount: 0,
-                prayerCount: 0,
-                victoryCount: 0,
-                milestoneCount: 0,
-                totalEncouragements: 0
-            });
-        } else {
-            // Update last login and ensure displayName exists
-            const userData = userDoc.data();
-            await updateDoc(userDocRef, {
-                lastLogin: new Date().toISOString(),
-                displayName: userData.displayName || user.displayName || user.email.split('@')[0]
-            });
-        }
-    }
-
-    // LocalAuth class for GitHub Pages compatibility
-    class LocalAuth {
-        static register(email, password, name) {
-            const users = JSON.parse(localStorage.getItem('victory_users') || '[]');
-            if (users.find(u => u.email === email)) throw new Error('User already exists');
-            const user = { id: Date.now().toString(), email, password, name, createdAt: new Date().toISOString() };
-            users.push(user);
-            localStorage.setItem('victory_users', JSON.stringify(users));
-            localStorage.setItem('victory_current_user', JSON.stringify(user));
-            return user;
+    <style>
+        :root {
+            --primary-color: #8B1538;
+            --secondary-color: #2C3E50;
+            --light-color: #ECF0F1;
+            --dark-color: #2C3E50;
         }
 
-        static login(email, password) {
-            const users = JSON.parse(localStorage.getItem('victory_users') || '[]');
-            const user = users.find(u => u.email === email && u.password === password);
-            if (!user) throw new Error('Invalid email or password');
-            localStorage.setItem('victory_current_user', JSON.stringify(user));
-            return user;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        static logout() {
-            localStorage.removeItem('victory_current_user');
-            window.location.href = 'index.html';
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--light-color) 0%, #fff 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        static getCurrentUser() {
-            const user = localStorage.getItem('victory_current_user');
-            return user ? JSON.parse(user) : null;
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
         }
-    }
 
-    document.addEventListener("DOMContentLoaded", () => {
-        const loginForm = document.querySelector("form"); // or use id="login-form" if present
-        if (!loginForm) return;
-
-        loginForm.addEventListener("submit", function(e) {
-            e.preventDefault(); // Prevent page reload
-
-            const emailInput = document.getElementById("email");
-            const passwordInput = document.getElementById("password");
-
-            const email = emailInput ? emailInput.value.trim() : "";
-            const password = passwordInput ? passwordInput.value.trim() : "";
-
-            if (!email || !password) {
-                alert("Please enter both email and password");
-                return;
-            }
-
-            try {
-                const user = LocalAuth.login(email, password); // stores user in localStorage
-                console.log("User logged in:", user);
-
-                // Redirect only after successful login
-                window.location.href = "dashboard.html";
-            } catch (err) {
-                alert(err.message);
-            }
-        });
-    });
-
-    // Handle Google sign in
-    async function handleGoogleSignIn() {
-        const errorDiv = document.getElementById('error-message');
-        try {
-            const result = await signInWithPopup(window.auth, window.googleProvider);
-            console.log('Google sign in:', result.user);
-            
-            // Ensure user document exists in Firestore
-            await ensureUserDocument(result.user);
-            
-            // Store login state
-            sessionStorage.setItem('loggedInUser', result.user.email);
-        } catch (error) {
-            console.error('Google sign in error:', error);
-            errorDiv.textContent = error.message;
-            errorDiv.style.display = 'block';
+        .logo {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: var(--primary-color);
         }
-    }
 
-    // Initialize auth guard
-    protectRoute("login");
+        .logo i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
 
-    // Make functions globally available
-    window.handleSignIn = handleSignIn;
-    window.handleGoogleSignIn = handleGoogleSignIn;
-</script>
-<style>
-    :root {
-        --primary-color: #8B1538;
-        --secondary-color: #2C3E50;
-        --light-color: #ECF0F1;
-        --dark-color: #2C3E50;
-    }
+        .logo h1 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
 
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
+        .logo p {
+            color: #666;
+            font-size: 0.9rem;
+        }
 
-    body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background: linear-gradient(135deg, var(--light-color) 0%, #fff 100%);
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
 
-    .container {
-        background: white;
-        padding: 2rem;
-        border-radius: 10px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        width: 100%;
-        max-width: 400px;
-    }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--secondary-color);
+            font-weight: 500;
+        }
 
-    .logo {
-        text-align: center;
-        margin-bottom: 2rem;
-    }
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
 
-    .logo i {
-        font-size: 3rem;
-        color: var(--primary-color);
-        margin-bottom: 0.5rem;
-    }
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
 
-    .logo h1 {
-        color: var(--secondary-color);
-        font-size: 1.5rem;
-    }
+        .btn {
+            width: 100%;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
 
-    .form-group {
-        margin-bottom: 1.5rem;
-    }
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
 
-    .form-group label {
-        display: block;
-        margin-bottom: 0.5rem;
-        color: var(--secondary-color);
-        font-weight: 500;
-    }
+        .btn-primary:hover {
+            background: var(--secondary-color);
+        }
 
-    .form-group input {
-        width: 100%;
-        padding: 0.75rem;
-        border: 2px solid #ddd;
-        border-radius: 8px;
-        font-size: 1rem;
-    }
+        .btn-google {
+            background: #4285f4;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
 
-    .form-group input:focus {
-        outline: none;
-        border-color: var(--primary-color);
-    }
+        .btn-google:hover {
+            background: #357ae8;
+        }
 
-    .btn {
-        width: 100%;
-        padding: 0.75rem;
-        border: none;
-        border-radius: 8px;
-        font-size: 1rem;
-        cursor: pointer;
-        transition: all 0.3s;
-        font-weight: 500;
-    }
+        .divider {
+            text-align: center;
+            margin: 1.5rem 0;
+            position: relative;
+        }
 
-    .btn-primary {
-        background: var(--primary-color);
-        color: white;
-        margin-bottom: 1rem;
-    }
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #ddd;
+        }
 
-    .btn-primary:hover {
-        background: #6c1028;
-    }
+        .divider span {
+            background: white;
+            padding: 0 1rem;
+            color: #666;
+        }
 
-    .btn-google {
-        background: white;
-        color: #333;
-        border: 2px solid #ddd;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-    }
+        .signup-link {
+            text-align: center;
+            margin-top: 1.5rem;
+            color: #666;
+        }
 
-    .btn-google:hover {
-        background: #f8f9fa;
-    }
+        .signup-link a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
 
-    .divider {
-        text-align: center;
-        margin: 1.5rem 0;
-        position: relative;
-    }
+        .signup-link a:hover {
+            text-decoration: underline;
+        }
 
-    .divider::before {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 0;
-        right: 0;
-        height: 1px;
-        background: #ddd;
-    }
-
-    .divider span {
-        background: white;
-        padding: 0 1rem;
-        position: relative;
-        color: #666;
-    }
-
-    .signup-link {
-        text-align: center;
-        margin-top: 1.5rem;
-        color: #666;
-    }
-
-    .signup-link a {
-        color: var(--primary-color);
-        text-decoration: none;
-        font-weight: 500;
-    }
-
-    .signup-link a:hover {
-        text-decoration: underline;
-    }
-
-    .error-message {
-        background: #fee;
-        color: #c33;
-        padding: 0.75rem;
-        border-radius: 8px;
-        margin-bottom: 1rem;
-        display: none;
-    }
-</style>
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+    </style>
 </head>
 <body>
-    <h1>LOGIN PAGE STATIC</h1>
     <div class="container">
         <div class="logo">
             <i class="fas fa-shield-alt"></i>
             <h1>PurposePartner</h1>
-            <p style="color: #666; margin-top: 0.5rem;">Sign in to your account</p>
+            <p>Sign in to your account</p>
         </div>
 
         <div id="error-message" class="error-message"></div>
 
-        <form>
+        <form id="login-form">
             <div class="form-group">
                 <label for="email">Email</label>
                 <input type="email" id="email" required placeholder="your@email.com">
@@ -342,7 +190,7 @@
             <span>OR</span>
         </div>
 
-        <button id="googleSignIn" onclick="handleGoogleSignIn()" class="btn btn-google">
+        <button class="btn btn-google" id="google-signin">
             <i class="fab fa-google"></i>
             Continue with Google
         </button>
@@ -351,12 +199,50 @@
             Don't have an account? <a href="signup.html">Sign up</a>
         </div>
     </div>
+
+    <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
+    import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
+
+    // Firebase config
+    const firebaseConfig = {
+        apiKey: "AIzaSyC4HhpXcYdGhvFRIz4IHksilgnMnRDbiS8",
+        authDomain: "victory-fb944.firebaseapp.com",
+        projectId: "victory-fb944",
+        storageBucket: "victory-fb944.firebasestorage.app",
+        messagingSenderId: "650310438797",
+        appId: "1:650310438797:web:c0bd9a1caaa6093d5137c4"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    // Use browser persistence
+    await setPersistence(auth, browserLocalPersistence);
+
+    // ----- Login -----
+    const loginForm = document.getElementById('login-form');
+    if (loginForm) {
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('error-message');
+
+            errorDiv.style.display = 'none';
+
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                console.log('User logged in:', userCredential.user);
+                window.location.href = 'dashboard.html';
+            } catch (err) {
+                console.error('Login error:', err);
+                errorDiv.textContent = err.message || 'Login failed';
+                errorDiv.style.display = 'block';
+            }
+        });
+    }
+    </script>
 </body>
 </html>
-
-
-
-
-
-
-
