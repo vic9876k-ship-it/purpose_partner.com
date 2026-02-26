@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign Up - PurposePartner</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%238B1538'/><path d='M8 8 L16 4 L24 8 L24 20 Q24 26 16 30 Q8 26 8 20 Z' fill='white' stroke='%232C3E50' stroke-width='1'/><circle cx='16' cy='18' r='3' fill='%238B1538'/></svg>">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    <link rel="manifest" href="manifest.json">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {
@@ -50,124 +55,101 @@
 
         .logo h1 {
             font-size: 1.5rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .logo p {
-            color: #666;
-            font-size: 0.9rem;
+            font-weight: 600;
         }
 
         .form-group {
             margin-bottom: 1.5rem;
         }
 
-        .form-group label {
+        label {
             display: block;
             margin-bottom: 0.5rem;
-            color: var(--secondary-color);
+            color: var(--dark-color);
             font-weight: 500;
         }
 
-        .form-group input {
+        input {
             width: 100%;
             padding: 0.75rem;
-            border: 2px solid #ddd;
-            border-radius: 8px;
+            border: 2px solid #e1e8ed;
+            border-radius: 5px;
             font-size: 1rem;
+            transition: border-color 0.3s;
         }
 
-        .form-group input:focus {
+        input:focus {
             outline: none;
             border-color: var(--primary-color);
         }
 
         .btn {
             width: 100%;
-            padding: 0.75rem;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-
-        .btn-primary {
             background: var(--primary-color);
             color: white;
+            border: none;
+            padding: 0.75rem;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
         }
 
-        .btn-primary:hover {
+        .btn:hover {
             background: var(--secondary-color);
         }
 
-        .btn-google {
-            background: #4285f4;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-        }
-
-        .btn-google:hover {
-            background: #357ae8;
-        }
-
-        .divider {
-            text-align: center;
-            margin: 1.5rem 0;
-            position: relative;
-        }
-
-        .divider::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: #ddd;
-        }
-
-        .divider span {
-            background: white;
-            padding: 0 1rem;
-            color: #666;
-        }
-
-        .login-link {
-            text-align: center;
-            margin-top: 1.5rem;
-            color: #666;
-        }
-
-        .login-link a {
-            color: var(--primary-color);
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        .login-link a:hover {
-            text-decoration: underline;
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
         }
 
         .error-message {
             background: #fee;
             color: #c33;
             padding: 0.75rem;
-            border-radius: 8px;
+            border-radius: 5px;
             margin-bottom: 1rem;
             display: none;
         }
 
-        .success-message {
-            background: #efe;
-            color: #3c3;
-            padding: 0.75rem;
-            border-radius: 8px;
-            margin-bottom: 1rem;
+        .loading {
             display: none;
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .spinner {
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid var(--primary-color);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 0.5rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 1.5rem;
+            color: var(--dark-color);
+        }
+
+        .login-link a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
@@ -176,124 +158,122 @@
         <div class="logo">
             <i class="fas fa-shield-alt"></i>
             <h1>PurposePartner</h1>
-            <p>Create your account</p>
         </div>
 
-        <div id="error-message" class="error-message"></div>
-        <div id="success-message" class="success-message"></div>
-
         <form id="signup-form">
+            <div class="error-message" id="error-message"></div>
+            
             <div class="form-group">
-                <label for="display-name">Display Name</label>
-                <input type="text" id="display-name" required placeholder="Your name">
+                <label for="displayName">Display Name</label>
+                <input type="text" id="displayName" name="displayName" required>
             </div>
 
             <div class="form-group">
                 <label for="email">Email</label>
-                <input type="email" id="email" required placeholder="your@email.com">
+                <input type="email" id="email" name="email" required>
             </div>
 
             <div class="form-group">
                 <label for="password">Password</label>
-                <input type="password" id="password" required placeholder="Create a password">
+                <input type="password" id="password" name="password" required>
             </div>
 
             <div class="form-group">
-                <label for="confirm-password">Confirm Password</label>
-                <input type="password" id="confirm-password" required placeholder="Confirm your password">
+                <label for="confirmPassword">Confirm Password</label>
+                <input type="password" id="confirmPassword" name="confirmPassword" required>
             </div>
 
-            <button type="submit" class="btn btn-primary" id="signup-btn">Create Account</button>
+            <button type="submit" class="btn" id="signup-btn">Sign Up</button>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                Creating account...
+            </div>
         </form>
-
-        <div class="divider">
-            <span>OR</span>
-        </div>
-
-        <button class="btn btn-google" id="google-signup">
-            <i class="fab fa-google"></i>
-            Continue with Google
-        </button>
 
         <div class="login-link">
             Already have an account? <a href="login.html">Sign in</a>
         </div>
     </div>
 
-    <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
-    import { getFirestore, doc, setDoc } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
+    <script>
+        // Local Authentication System
+        class LocalAuth {
+            static register(email, password, displayName) {
+                const users = JSON.parse(localStorage.getItem('victory_users') || '[]');
+                
+                // Check if user already exists
+                if (users.find(u => u.email === email)) {
+                    throw new Error('User already exists');
+                }
 
-    // Firebase config
-    const firebaseConfig = {
-        apiKey: "AIzaSyC4HhpXcYdGhvFRIz4IHksilgnMnRDbiS8",
-        authDomain: "victory-fb944.firebaseapp.com",
-        projectId: "victory-fb944",
-        storageBucket: "victory-fb944.firebasestorage.app",
-        messagingSenderId: "650310438797",
-        appId: "1:650310438797:web:c0bd9a1caaa6093d5137c4"
-    };
+                const user = {
+                    id: Date.now().toString(),
+                    email,
+                    password, // In production, this should be hashed
+                    displayName,
+                    createdAt: new Date().toISOString()
+                };
 
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+                users.push(user);
+                localStorage.setItem('victory_users', JSON.stringify(users));
+                return user;
+            }
 
-    // Use browser persistence
-    await setPersistence(auth, browserLocalPersistence);
+            static login(email, password) {
+                const users = JSON.parse(localStorage.getItem('victory_users') || '[]');
+                const user = users.find(u => u.email === email && u.password === password);
+                
+                if (!user) {
+                    throw new Error('Invalid email or password');
+                }
 
-    // ----- Signup -----
-    const signupForm = document.getElementById('signup-form');
-    if (signupForm) {
-        signupForm.addEventListener('submit', async (e) => {
+                // Store current user
+                localStorage.setItem('victory_current_user', JSON.stringify(user));
+                return user;
+            }
+
+            static logout() {
+                localStorage.removeItem('victory_current_user');
+            }
+
+            static getCurrentUser() {
+                const user = localStorage.getItem('victory_current_user');
+                return user ? JSON.parse(user) : null;
+            }
+        }
+
+        // Signup form
+        document.getElementById('signup-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const displayName = document.getElementById('display-name').value.trim();
-            const email = document.getElementById('email').value.trim();
+
+            const displayName = document.getElementById('displayName').value;
+            const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            const confirmPassword = document.getElementById('confirm-password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
             const errorDiv = document.getElementById('error-message');
-            const successDiv = document.getElementById('success-message');
+            const loading = document.getElementById('loading');
+            const signupBtn = document.getElementById('signup-btn');
 
-            errorDiv.style.display = "none";
-            successDiv.style.display = "none";
-
-            if (password !== confirmPassword) {
-                errorDiv.textContent = 'Passwords do not match';
-                errorDiv.style.display = 'block';
-                return;
-            }
-
-            if (password.length < 6) {
-                errorDiv.textContent = 'Password must be at least 6 characters';
-                errorDiv.style.display = 'block';
-                return;
-            }
+            errorDiv.style.display = 'none';
+            loading.style.display = 'block';
+            signupBtn.disabled = true;
 
             try {
-                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
+                // Validate passwords match
+                if (password !== confirmPassword) {
+                    throw new Error('Passwords do not match');
+                }
 
-                await updateProfile(user, { displayName });
-                await setDoc(doc(db, 'users', user.uid), {
-                    uid: user.uid,
-                    email: user.email,
-                    displayName,
-                    createdAt: new Date(),
-                    lastLogin: new Date()
-                }, { merge: true });
-
-                successDiv.textContent = 'Account created! Redirecting...';
-                successDiv.style.display = 'block';
-                setTimeout(() => window.location.href = 'dashboard.html', 1000);
-
-            } catch (err) {
-                console.error('Signup error:', err);
-                errorDiv.textContent = err.message || 'Signup error';
+                await LocalAuth.register(email, password, displayName);
+                window.location.href = 'dashboard.html';
+            } catch (error) {
+                errorDiv.textContent = error.message;
                 errorDiv.style.display = 'block';
+                loading.style.display = 'none';
+                signupBtn.disabled = false;
             }
         });
-    }
     </script>
 </body>
 </html>

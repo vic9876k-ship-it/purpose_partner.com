@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - PurposePartner</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%238B1538'/><path d='M8 8 L16 4 L24 8 L24 20 Q24 26 16 30 Q8 26 8 20 Z' fill='white' stroke='%232C3E50' stroke-width='1'/><circle cx='16' cy='18' r='3' fill='%238B1538'/></svg>">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    <link rel="manifest" href="manifest.json">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {
@@ -25,7 +30,6 @@
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: var(--light-color);
-            min-height: 100vh;
         }
 
         .header {
@@ -35,18 +39,6 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 1.2rem;
-            font-weight: bold;
-        }
-
-        .logo i {
-            font-size: 1.5rem;
         }
 
         .user-info {
@@ -66,26 +58,6 @@
             justify-content: center;
             font-weight: bold;
             font-size: 1.2rem;
-        }
-
-        .user-name {
-            font-weight: 500;
-        }
-
-        .logout-btn {
-            background: rgba(255,255,255,0.2);
-            border: none;
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 5px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .logout-btn:hover {
-            background: rgba(255,255,255,0.3);
         }
 
         .container {
@@ -253,7 +225,7 @@
         <div class="user-info">
             <div class="user-avatar" id="user-avatar">U</div>
             <span id="user-name">User</span>
-            <button class="logout-btn" id="logout-btn">
+            <button class="logout-btn" onclick="LocalAuth.logout(); window.location.href='login.html';">
                 <i class="fas fa-sign-out-alt"></i> Logout
             </button>
         </div>
@@ -296,7 +268,7 @@
                 <div id="no-partners" style="color: var(--warning-color);">
                     <i class="fas fa-user-plus"></i> No Partners Connected Yet
                 </div>
-                <button class="btn" onclick="console.log('Button clicked!'); showPartnerCodeModal();" style="margin-top: 0.5rem;">
+                <button class="btn" onclick="showPartnerCodeModal();" style="margin-top: 0.5rem;">
                     <i class="fas fa-link"></i> Add Partner Code
                 </button>
             </div>
@@ -335,205 +307,162 @@
         </section>
     </div>
 
-    <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
-    import { getFirestore, doc, setDoc } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
+    <script>
+        // Local Authentication System
+        class LocalAuth {
+            static register(email, password, displayName) {
+                const users = JSON.parse(localStorage.getItem('victory_users') || '[]');
+                
+                // Check if user already exists
+                if (users.find(u => u.email === email)) {
+                    throw new Error('User already exists');
+                }
 
-    // Firebase config
-    const firebaseConfig = {
-        apiKey: "AIzaSyC4HhpXcYdGhvFRIz4IHksilgnMnRDbiS8",
-        authDomain: "victory-fb944.firebaseapp.com",
-        projectId: "victory-fb944",
-        storageBucket: "victory-fb944.firebasestorage.app",
-        messagingSenderId: "650310438797",
-        appId: "1:650310438797:web:c0bd9a1caaa6093d5137c4"
-    };
+                const user = {
+                    id: Date.now().toString(),
+                    email,
+                    password, // In production, this should be hashed
+                    displayName,
+                    createdAt: new Date().toISOString()
+                };
 
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+                users.push(user);
+                localStorage.setItem('victory_users', JSON.stringify(users));
+                return user;
+            }
 
-    // Use browser persistence
-    await setPersistence(auth, browserLocalPersistence);
+            static login(email, password) {
+                const users = JSON.parse(localStorage.getItem('victory_users') || '[]');
+                const user = users.find(u => u.email === email && u.password === password);
+                
+                if (!user) {
+                    throw new Error('Invalid email or password');
+                }
 
-    // ----- Logout -----
-    const logoutBtn = document.getElementById('logout-btn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', async () => {
-            await signOut(auth);
-            window.location.href = 'login.html';
-        });
-    }
+                // Store current user
+                localStorage.setItem('victory_current_user', JSON.stringify(user));
+                return user;
+            }
 
-    // ----- Dashboard Auth Guard -----
-    document.addEventListener('DOMContentLoaded', () => {
-        onAuthStateChanged(auth, (user) => {
-            // Only redirect if user is null (not just undefined)
-            if (user === null) {
+            static logout() {
+                localStorage.removeItem('victory_current_user');
+            }
+
+            static getCurrentUser() {
+                const user = localStorage.getItem('victory_current_user');
+                return user ? JSON.parse(user) : null;
+            }
+        }
+
+        // Dashboard Auth Guard
+        document.addEventListener('DOMContentLoaded', () => {
+            const user = LocalAuth.getCurrentUser();
+            
+            if (!user) {
                 window.location.href = 'login.html';
                 return;
             }
 
-            // Get display name with proper fallbacks
-            const displayName = user.displayName ? user.displayName : user.email;
-            
-            // Update welcome message safely
+            // Update welcome message
             const welcomeEl = document.getElementById('welcome-name');
             if (welcomeEl) {
-                welcomeEl.textContent = `Thank you for being an accountability Hero, ${displayName}.`;
+                welcomeEl.textContent = `Thank you for being an accountability Hero, ${user.displayName}.`;
             }
 
-            // Update username safely
+            // Update username
             const userNameEl = document.getElementById('user-name');
             if (userNameEl) {
-                userNameEl.textContent = displayName;
+                userNameEl.textContent = user.displayName;
             }
 
-            // Update avatar safely
+            // Update avatar
             const userAvatarEl = document.getElementById('user-avatar');
             if (userAvatarEl) {
-                userAvatarEl.textContent = displayName.charAt(0).toUpperCase();
+                userAvatarEl.textContent = user.displayName.charAt(0).toUpperCase();
             }
         });
-    });
 
-    // Dashboard functions
-    function showNotifications() {
-        alert('Notifications feature coming soon! You\'ll see alerts when partners need encouragement.');
-    }
-
-    function showDetailedStats() {
-        alert('Detailed statistics coming soon!\n\nYou\'ll be able to see:\n- Daily/weekly/monthly activity\n- Partner engagement levels\n- Victory celebrations\n- Prayer requests answered');
-    }
-
-    function showResources() {
-        alert('Biblical Resources coming soon!\n\nAccess curated Bible verses and devotionals for encouragement and strength.');
-    }
-
-    // Add event listeners to dashboard buttons
-    document.addEventListener('DOMContentLoaded', function() {
-        // Add click listeners to all feature buttons
-        const featureButtons = document.querySelectorAll('.feature-item .btn');
-        featureButtons.forEach(button => {
-            button.addEventListener('click', function(e) {
-                e.preventDefault();
-                const buttonText = this.textContent.trim();
-                
-                switch(buttonText) {
-                    case 'View Notifications':
-                        showNotifications();
-                        break;
-                    case 'View Stats':
-                        showDetailedStats();
-                        break;
-                    case 'Browse Resources':
-                        showResources();
-                        break;
-                    default:
-                        console.log('Unknown button:', buttonText);
-                }
-            });
-        });
-
-        console.log('Dashboard buttons initialized:', featureButtons.length);
-    });
-
-    // Partner code modal functions
-    function showPartnerCodeModal() {
-        const modal = document.createElement('div');
-        modal.style.cssText = `
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); z-index: 10000;
-            display: flex; align-items: center; justify-content: center;
-        `;
-        
-        modal.innerHTML = `
-            <div style="background: white; padding: 2rem; border-radius: 10px; max-width: 400px; width: 90%;">
-                <h3 style="margin-bottom: 1rem;">Add Partner Code</h3>
-                <p style="margin-bottom: 1rem;">Enter the 6-digit code from your accountability partner:</p>
-                <input type="text" id="partner-code-input" placeholder="Enter 6-digit code" maxlength="6" style="width: 100%; padding: 0.75rem; border: 2px solid #ddd; border-radius: 5px; margin-bottom: 1rem; text-align: center; font-size: 1.2rem; letter-spacing: 0.2rem;">
-                <div style="display: flex; gap: 0.5rem;">
-                    <button class="btn" onclick="connectPartner()">Connect</button>
-                    <button class="btn" style="background: #666;" onclick="this.closest('div[style*=fixed]').remove()">Cancel</button>
+        // Partner code modal functions
+        function showPartnerCodeModal() {
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(0,0,0,0.5); z-index: 10000;
+                display: flex; align-items: center; justify-content: center;
+            `;
+            
+            modal.innerHTML = `
+                <div style="background: white; padding: 2rem; border-radius: 10px; max-width: 400px; width: 90%;">
+                    <h3 style="margin-bottom: 1rem;">Add Partner Code</h3>
+                    <p style="margin-bottom: 1rem;">Enter the 6-digit code from your accountability partner:</p>
+                    <input type="text" id="partner-code-input" placeholder="Enter 6-digit code" maxlength="6" style="width: 100%; padding: 0.75rem; border: 2px solid #ddd; border-radius: 5px; margin-bottom: 1rem; text-align: center; font-size: 1.2rem; letter-spacing: 0.2rem;">
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button class="btn" onclick="connectPartner()">Connect</button>
+                        <button class="btn" style="background: #666;" onclick="this.closest('div[style*=fixed]').remove()">Cancel</button>
+                    </div>
                 </div>
-            </div>
-        `;
-        
-        document.body.appendChild(modal);
-        
-        // Focus input after modal is added
-        setTimeout(() => {
-            const input = document.getElementById('partner-code-input');
-            if (input) {
-                input.focus();
-                console.log('Modal created and input focused');
-            } else {
-                console.error('Input not found in modal');
-            }
-        }, 100);
-    }
-
-    // Connect with partner using their code
-    async function connectPartner() {
-        const codeInput = document.getElementById('partner-code-input');
-        const code = codeInput.value.trim();
-        
-        if (code.length !== 6 || !/^\d{6}$/.test(code)) {
-            alert('Please enter a valid 6-digit code');
-            return;
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Focus input after modal is added
+            setTimeout(() => {
+                const input = document.getElementById('partner-code-input');
+                if (input) {
+                    input.focus();
+                }
+            }, 100);
         }
 
-        try {
-            console.log('Looking for pairing code:', code);
+        // Connect with partner using their code
+        async function connectPartner() {
+            const codeInput = document.getElementById('partner-code-input');
+            const code = codeInput.value.trim();
             
-            const loadingDiv = document.createElement('div');
-            loadingDiv.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border: 2px solid #8B1538; border-radius: 10px; z-index: 10000; text-align: center;';
-            loadingDiv.innerHTML = '<h3>Checking partner code...</h3><p>Please wait...</p>';
-            document.body.appendChild(loadingDiv);
-            
-            // Read pairing document without auth - using REST API only
-            const url = `https://firestore.googleapis.com/v1/projects/victory-fb944/databases/(default)/documents/pairing/${code}`;
-            const read = await fetch(url);
-            if (!read.ok) {
-                loadingDiv.remove();
-                alert('Invalid code');
+            if (code.length !== 6 || !/^\d{6}$/.test(code)) {
+                alert('Please enter a valid 6-digit code');
                 return;
             }
-            
-            const pairData = await read.json();
-            const userData = pairData.fields;
-            if (!userData || !userData.uid) {
-                loadingDiv.remove();
-                alert('Invalid pairing data');
-                return;
-            }
-            
-            const partnerId = userData.uid.stringValue;
-            const partnerEmail = userData.email?.stringValue || 'Unknown';
-            
-            loadingDiv.remove();
-            alert('Paired!');
-            
-            // Save pairing code to localStorage for notifications
-            localStorage.setItem('pairingCode', code);
-            
-            document.querySelector('[style*="position: fixed"]')?.remove();
 
-        } catch (error) {
-            console.error('Error connecting partner:', error);
-            
-            const loadingDiv = document.querySelector('div[style*="translate(-50%, -50%)"]');
-            if (loadingDiv) loadingDiv.remove();
-            
-            alert('Error connecting partner: ' + error.message + '\n\nPlease try again or contact support if the problem persists.');
+            try {
+                alert('Partner connection feature coming soon!');
+                document.querySelector('[style*="position: fixed"]')?.remove();
+            } catch (error) {
+                console.error('Error connecting partner:', error);
+                alert('Error connecting partner: ' + error.message);
+            }
         }
-    }
 
-    // Make functions globally available
-    window.showPartnerCodeModal = showPartnerCodeModal;
-    window.connectPartner = connectPartner;
+        // Add event listeners to dashboard buttons
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add click listeners to all feature buttons
+            const featureButtons = document.querySelectorAll('.feature-item .btn');
+            featureButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const buttonText = this.textContent.trim();
+                    
+                    switch(buttonText) {
+                        case 'View Notifications':
+                            alert('Notifications feature coming soon! You\'ll see alerts when partners need encouragement.');
+                            break;
+                        case 'View Stats':
+                            alert('Detailed statistics coming soon!\n\nYou\'ll be able to see:\n- Daily/weekly/monthly activity\n- Partner engagement levels\n- Victory celebrations\n- Prayer requests answered');
+                            break;
+                        case 'Browse Resources':
+                            alert('Biblical Resources coming soon!\n\nAccess curated Bible verses and devotionals for encouragement and strength.');
+                            break;
+                        default:
+                            console.log('Unknown button:', buttonText);
+                    }
+                });
+            });
+
+            console.log('Dashboard buttons initialized:', featureButtons.length);
+        });
     </script>
+    
+    <!-- Notifications Module -->
+    <script type="module" src="./pwa-notifications.js"></script>
 </body>
 </html>
