@@ -11,6 +11,9 @@
             --secondary-color: #2C3E50;
             --light-color: #ECF0F1;
             --dark-color: #2C3E50;
+            --success-color: #27AE60;
+            --warning-color: #F39C12;
+            --danger-color: #E74C3C;
         }
 
         * {
@@ -25,7 +28,7 @@
             min-height: 100vh;
         }
 
-        header {
+        .header {
             background: var(--primary-color);
             color: white;
             padding: 1rem 2rem;
@@ -38,14 +41,12 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            font-size: 1.2rem;
+            font-weight: bold;
         }
 
         .logo i {
             font-size: 1.5rem;
-        }
-
-        .logo h1 {
-            font-size: 1.2rem;
         }
 
         .user-info {
@@ -64,6 +65,7 @@
             align-items: center;
             justify-content: center;
             font-weight: bold;
+            font-size: 1.2rem;
         }
 
         .user-name {
@@ -77,13 +79,16 @@
             padding: 0.5rem 1rem;
             border-radius: 5px;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .logout-btn:hover {
             background: rgba(255,255,255,0.3);
         }
 
-        main {
+        .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 2rem;
@@ -119,19 +124,19 @@
             text-align: center;
         }
 
-        .stat-card i {
-            font-size: 2rem;
-            color: var(--primary-color);
+        .stat-card h3 {
+            color: var(--secondary-color);
             margin-bottom: 1rem;
         }
 
-        .stat-card h3 {
-            color: var(--secondary-color);
-            margin-bottom: 0.5rem;
+        .number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary-color);
         }
 
-        .stat-card p {
-            color: #666;
+        .features-section {
+            margin-bottom: 2rem;
         }
 
         .features-grid {
@@ -177,71 +182,158 @@
         .btn:hover {
             background: var(--secondary-color);
         }
+
+        .partner-code-section {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .partner-code-display {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            letter-spacing: 0.2rem;
+        }
+
+        .partner-code-input {
+            padding: 0.5rem;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            margin-right: 0.5rem;
+            width: 150px;
+        }
+
+        .notifications-section {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+
+        .notifications-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 1rem;
+        }
+
+        .notification-item {
+            background: white;
+            padding: 0.75rem;
+            border-radius: 5px;
+            margin-bottom: 0.5rem;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
-    <header>
+    <header class="header">
         <div class="logo">
             <i class="fas fa-shield-alt"></i>
-            <h1>PurposePartner</h1>
+            PurposePartner
         </div>
         <div class="user-info">
             <div class="user-avatar" id="user-avatar">U</div>
-            <div class="user-name" id="user-name">User</div>
-            <button class="logout-btn" id="logout-btn">Sign Out</button>
+            <span id="user-name">User</span>
+            <button class="logout-btn" id="logout-btn">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
         </div>
     </header>
 
-    <main>
+    <div class="container">
         <section class="welcome-section">
             <h1 id="welcome-name">Welcome!</h1>
-            <p>Your accountability journey starts here</p>
+            <p>You are making a difference in people's lives through accountability and encouragement.</p>
         </section>
 
-        <section class="stats-grid">
+        <div class="stats-grid">
             <div class="stat-card">
-                <i class="fas fa-users"></i>
-                <h3>Partners Connected</h3>
-                <p id="partners-count">0</p>
+                <h3>Partners Supported</h3>
+                <div class="number" id="partners-count">0</div>
             </div>
             <div class="stat-card">
-                <i class="fas fa-heart"></i>
                 <h3>Encouragements Sent</h3>
-                <p id="encouragements-count">0</p>
+                <div class="number" id="encouragements-count">0</div>
             </div>
             <div class="stat-card">
-                <i class="fas fa-trophy"></i>
                 <h3>Victories Celebrated</h3>
-                <p id="victories-count">0</p>
+                <div class="number" id="victories-count">0</div>
             </div>
             <div class="stat-card">
-                <i class="fas fa-pray"></i>
-                <h3>Prayers Answered</h3>
-                <p id="prayers-count">0</p>
+                <h3>Days Active</h3>
+                <div class="number" id="days-active">0</div>
             </div>
-        </section>
+        </div>
 
-        <section class="features-grid">
-            <div class="feature-item">
-                <i class="fas fa-bell"></i>
-                <h4>Receive Notifications</h4>
-                <p>Get alerts when your accountability partners need encouragement during moments of temptation.</p>
-                <button class="btn">View Notifications</button>
+        <section class="features-section">
+            <h2 style="text-align: center; margin-bottom: 2rem; color: var(--secondary-color);">Your Dashboard</h2>
+            
+            <!-- Partner Connection Status -->
+            <div id="partner-status" style="background: #f8f9fa; padding: 1rem; border-radius: 8px; margin-bottom: 2rem; text-align: center;">
+                <h4 style="margin-bottom: 0.5rem;">Accountability Partners</h4>
+                <div id="partners-connected" style="display: none; color: var(--success-color);">
+                    <i class="fas fa-link"></i> <span id="partners-count-display">0</span> Partners Connected
+                </div>
+                <div id="no-partners" style="color: var(--warning-color);">
+                    <i class="fas fa-user-plus"></i> No Partners Connected Yet
+                </div>
+                <button class="btn" onclick="console.log('Button clicked!'); showPartnerCodeModal();" style="margin-top: 0.5rem;">
+                    <i class="fas fa-link"></i> Add Partner Code
+                </button>
             </div>
-            <div class="feature-item">
-                <i class="fas fa-chart-line"></i>
-                <h4>Track Progress</h4>
-                <p>Monitor the impact of your encouragement and celebrate victories together.</p>
-                <button class="btn">View Stats</button>
+
+            <!-- Notifications Section -->
+            <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; margin-bottom: 2rem;">
+                <h4 style="margin-bottom: 1rem;">Recent Block Notifications</h4>
+                <button id="enableNotifications" class="btn" style="margin-bottom: 1rem;">
+                    <i class="fas fa-bell"></i> Enable Browser Notifications
+                </button>
+                <ul id="notificationsList" style="list-style: none; padding: 0; max-height: 200px; overflow-y: auto;">
+                    <!-- Notifications will be added here -->
+                </ul>
             </div>
-            <div class="feature-item">
-                <i class="fas fa-book"></i>
-                <h4>Biblical Resources</h4>
-                <p>Access curated Bible verses and devotionals for encouragement and strength.</p>
-                <button class="btn">Browse Resources</button>
+
+            <div class="features-grid">
+                <div class="feature-item">
+                    <i class="fas fa-bell"></i>
+                    <h4>Receive Notifications</h4>
+                    <p>Get alerts when your accountability partners need encouragement during moments of temptation.</p>
+                    <button class="btn">View Notifications</button>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-chart-line"></i>
+                    <h4>Track Progress</h4>
+                    <p>Monitor the impact of your encouragement and celebrate victories together.</p>
+                    <button class="btn">View Stats</button>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-book"></i>
+                    <h4>Biblical Resources</h4>
+                    <p>Access curated Bible verses and devotionals for encouragement and strength.</p>
+                    <button class="btn">Browse Resources</button>
+                </div>
             </div>
         </section>
-    </main>
+    </div>
 
     <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
@@ -278,13 +370,14 @@
     // ----- Dashboard Auth Guard -----
     document.addEventListener('DOMContentLoaded', () => {
         onAuthStateChanged(auth, (user) => {
-            if (!user) {
+            // Only redirect if user is null (not just undefined)
+            if (user === null) {
                 window.location.href = 'login.html';
                 return;
             }
 
             // Get display name with proper fallbacks
-            const displayName = user.displayName || user.email || "Partner";
+            const displayName = user.displayName ? user.displayName : user.email;
             
             // Update welcome message safely
             const welcomeEl = document.getElementById('welcome-name');
@@ -346,6 +439,101 @@
 
         console.log('Dashboard buttons initialized:', featureButtons.length);
     });
+
+    // Partner code modal functions
+    function showPartnerCodeModal() {
+        const modal = document.createElement('div');
+        modal.style.cssText = `
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 10000;
+            display: flex; align-items: center; justify-content: center;
+        `;
+        
+        modal.innerHTML = `
+            <div style="background: white; padding: 2rem; border-radius: 10px; max-width: 400px; width: 90%;">
+                <h3 style="margin-bottom: 1rem;">Add Partner Code</h3>
+                <p style="margin-bottom: 1rem;">Enter the 6-digit code from your accountability partner:</p>
+                <input type="text" id="partner-code-input" placeholder="Enter 6-digit code" maxlength="6" style="width: 100%; padding: 0.75rem; border: 2px solid #ddd; border-radius: 5px; margin-bottom: 1rem; text-align: center; font-size: 1.2rem; letter-spacing: 0.2rem;">
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="btn" onclick="connectPartner()">Connect</button>
+                    <button class="btn" style="background: #666;" onclick="this.closest('div[style*=fixed]').remove()">Cancel</button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // Focus input after modal is added
+        setTimeout(() => {
+            const input = document.getElementById('partner-code-input');
+            if (input) {
+                input.focus();
+                console.log('Modal created and input focused');
+            } else {
+                console.error('Input not found in modal');
+            }
+        }, 100);
+    }
+
+    // Connect with partner using their code
+    async function connectPartner() {
+        const codeInput = document.getElementById('partner-code-input');
+        const code = codeInput.value.trim();
+        
+        if (code.length !== 6 || !/^\d{6}$/.test(code)) {
+            alert('Please enter a valid 6-digit code');
+            return;
+        }
+
+        try {
+            console.log('Looking for pairing code:', code);
+            
+            const loadingDiv = document.createElement('div');
+            loadingDiv.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border: 2px solid #8B1538; border-radius: 10px; z-index: 10000; text-align: center;';
+            loadingDiv.innerHTML = '<h3>Checking partner code...</h3><p>Please wait...</p>';
+            document.body.appendChild(loadingDiv);
+            
+            // Read pairing document without auth - using REST API only
+            const url = `https://firestore.googleapis.com/v1/projects/victory-fb944/databases/(default)/documents/pairing/${code}`;
+            const read = await fetch(url);
+            if (!read.ok) {
+                loadingDiv.remove();
+                alert('Invalid code');
+                return;
+            }
+            
+            const pairData = await read.json();
+            const userData = pairData.fields;
+            if (!userData || !userData.uid) {
+                loadingDiv.remove();
+                alert('Invalid pairing data');
+                return;
+            }
+            
+            const partnerId = userData.uid.stringValue;
+            const partnerEmail = userData.email?.stringValue || 'Unknown';
+            
+            loadingDiv.remove();
+            alert('Paired!');
+            
+            // Save pairing code to localStorage for notifications
+            localStorage.setItem('pairingCode', code);
+            
+            document.querySelector('[style*="position: fixed"]')?.remove();
+
+        } catch (error) {
+            console.error('Error connecting partner:', error);
+            
+            const loadingDiv = document.querySelector('div[style*="translate(-50%, -50%)"]');
+            if (loadingDiv) loadingDiv.remove();
+            
+            alert('Error connecting partner: ' + error.message + '\n\nPlease try again or contact support if the problem persists.');
+        }
+    }
+
+    // Make functions globally available
+    window.showPartnerCodeModal = showPartnerCodeModal;
+    window.connectPartner = connectPartner;
     </script>
 </body>
 </html>
