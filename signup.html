@@ -265,7 +265,7 @@
                     throw new Error('Passwords do not match');
                 }
 
-                await LocalAuth.register(email, password, displayName);
+                LocalAuth.register(email, password, displayName);
                 window.location.href = 'dashboard.html';
             } catch (error) {
                 errorDiv.textContent = error.message;

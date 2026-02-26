@@ -248,7 +248,7 @@
             signinBtn.disabled = true;
 
             try {
-                await LocalAuth.login(email, password);
+                LocalAuth.login(email, password);
                 window.location.href = 'dashboard.html';
             } catch (error) {
                 errorDiv.textContent = error.message;
