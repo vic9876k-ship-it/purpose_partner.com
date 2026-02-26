@@ -393,29 +393,24 @@
         window.firebaseReady = true;
         console.log('Firebase initialized and ready');
 
-        // Local Authentication System
-        class LocalAuth {
-            static getCurrentUser() {
-                const user = localStorage.getItem('victory_current_user');
-                return user ? JSON.parse(user) : null;
-            }
-        }
-
-        // Update greeting dynamically after page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            const user = LocalAuth.getCurrentUser();
-            const displayName = user && user.name ? user.name : "Partner";
-            const welcomeNameEl = document.getElementById('welcome-name');
-            if (welcomeNameEl) {
-                welcomeNameEl.textContent = `Thank you for being an accountability Hero, ${displayName}.`;
-            }
-            
-            // Update user info elements if they exist
-            const userNameEl = document.getElementById('user-name');
-            const userAvatarEl = document.getElementById('user-avatar');
-            if (userNameEl) userNameEl.textContent = user && user.name ? user.name : (user && user.email ? user.email : 'Partner');
-            if (userAvatarEl) userAvatarEl.textContent = user && user.name ? user.name.charAt(0).toUpperCase() : (user && user.email ? user.email.charAt(0).toUpperCase() : 'P');
-        });
+        // Simple authentication for dashboard - DISABLED for phone to prevent 403 errors
+        // window.firebaseAuth.onAuthStateChanged(window.auth, (user) => {
+        //     if (!user) {
+        //         window.location.href = 'login.html';
+        //         return;
+        //     }
+        // 
+        //     // Update UI
+        //     document.getElementById('user-name').textContent = user.displayName || user.email;
+        //     document.getElementById('user-avatar').textContent = (user.displayName || user.email).charAt(0).toUpperCase();
+        //     document.getElementById('welcome-name').textContent = `Welcome, ${user.displayName || 'Partner'}!`;
+        // 
+        //     // Load dashboard data
+        //     loadDashboardData(user);
+        //     
+        //     // Start notification listener
+        //     listenForNotifications();
+        // });
 
         // Simple logout - DISABLED for phone to prevent 403 errors
         function signOut() {
@@ -889,33 +884,5 @@
     
     <!-- Notifications Module -->
     <script type="module" src="./pwa-notifications.js"></script>
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const user = JSON.parse(localStorage.getItem('victory_current_user'));
-
-        if (!user) {
-            window.location.href = "index.html";
-            return;
-        }
-
-        const displayName = user.name || "partner";
-
-        const welcomeElement = document.getElementById("welcome-name");
-        if (welcomeElement) {
-            welcomeElement.textContent = 
-            `Thank you for being an accountability Hero, ${displayName}.`;
-        }
-
-        const userNameElement = document.getElementById("user-name");
-        if (userNameElement) {
-            userNameElement.textContent = displayName;
-        }
-
-        const userAvatarElement = document.getElementById("user-avatar");
-        if (userAvatarElement) {
-            userAvatarElement.textContent = displayName.charAt(0).toUpperCase();
-        }
-    });
-    </script>
 </body>
 </html>
