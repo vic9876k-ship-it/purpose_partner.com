@@ -265,7 +265,9 @@
                     throw new Error('Passwords do not match');
                 }
 
-                LocalAuth.register(email, password, displayName);
+                const user = LocalAuth.register(email, password, displayName);
+                // Automatically log in the user after registration
+                localStorage.setItem('victory_current_user', JSON.stringify(user));
                 window.location.href = 'dashboard.html';
             } catch (error) {
                 errorDiv.textContent = error.message;
