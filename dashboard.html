@@ -1,112 +1,128 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - PurposePartner</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard - PurposePartner</title>
 
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%238B1538'/><path d='M8 8 L16 4 L24 8 L24 20 Q24 26 16 30 Q8 26 8 20 Z' fill='white' stroke='%232C3E50' stroke-width='1'/><circle cx='16' cy='18' r='3' fill='%238B1538'/></svg>">
-    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
-    <link rel="manifest" href="manifest.json">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%238B1538'/><path d='M8 8 L16 4 L24 8 L24 20 Q24 26 16 30 Q8 26 8 20 Z' fill='white' stroke='%232C3E50' stroke-width='1'/><circle cx='16' cy='18' r='3' fill='%238B1538'/></svg>">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 
-    <style>
-    /* --- YOUR ORIGINAL CSS FULLY PRESERVED --- */
-    :root {
-        --primary-color: #8B1538;
-        --secondary-color: #2C3E50;
-        --light-color: #ECF0F1;
-        --dark-color: #2C3E50;
-        --success-color: #27AE60;
-        --warning-color: #F39C12;
-        --danger-color: #E74C3C;
-    }
-    * { margin:0; padding:0; box-sizing:border-box; }
-    body { font-family:'Segoe UI',Tahoma,Verdana,sans-serif; background:var(--light-color); }
-    .header { background:var(--primary-color); color:white; padding:1rem 2rem; display:flex; justify-content:space-between; align-items:center; }
-    .user-info { display:flex; align-items:center; gap:1rem; }
-    .user-avatar { width:40px; height:40px; border-radius:50%; background:var(--secondary-color); display:flex; align-items:center; justify-content:center; color:white; font-weight:bold; }
-    .logout-btn { background:transparent; color:white; border:1px solid white; padding:0.5rem 1rem; border-radius:5px; cursor:pointer; }
-    .logout-btn:hover { background:white; color:var(--primary-color); }
-    .container { max-width:1200px; margin:0 auto; padding:2rem; }
-    .welcome-section { background:white; padding:2rem; border-radius:10px; margin-bottom:2rem; box-shadow:0 5px 15px rgba(0,0,0,0.1); text-align:center; }
-    .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:1rem; margin-bottom:2rem; }
-    .stat-card { background:white; padding:1.5rem; border-radius:10px; box-shadow:0 5px 15px rgba(0,0,0,0.1); text-align:center; }
-    .number { font-size:2rem; font-weight:bold; color:var(--secondary-color); }
-    </style>
+<style>
+:root {
+--primary-color:#8B1538;
+--secondary-color:#2C3E50;
+--light-color:#ECF0F1;
+--success-color:#27AE60;
+--warning-color:#F39C12;
+--danger-color:#E74C3C;
+}
+body{font-family:'Segoe UI',Tahoma,Verdana,sans-serif;background:var(--light-color);margin:0;}
+.header{background:var(--primary-color);color:white;padding:1rem 2rem;display:flex;justify-content:space-between;align-items:center;}
+.user-info{display:flex;align-items:center;gap:1rem;}
+.user-avatar{width:40px;height:40px;border-radius:50%;background:var(--secondary-color);display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;}
+.logout-btn{background:transparent;color:white;border:1px solid white;padding:0.5rem 1rem;border-radius:5px;cursor:pointer;}
+.logout-btn:hover{background:white;color:var(--primary-color);}
+.container{max-width:1200px;margin:0 auto;padding:2rem;}
+.welcome-section{background:white;padding:2rem;border-radius:10px;margin-bottom:2rem;text-align:center;}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1rem;margin-bottom:2rem;}
+.stat-card{background:white;padding:1.5rem;border-radius:10px;text-align:center;}
+.number{font-size:2rem;font-weight:bold;color:var(--secondary-color);}
+.features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1rem;}
+.feature-item{background:white;padding:1.5rem;border-radius:10px;text-align:center;}
+.feature-item i{font-size:2rem;color:var(--primary-color);margin-bottom:1rem;}
+.btn{background:var(--primary-color);color:white;border:none;padding:0.5rem 1rem;border-radius:5px;cursor:pointer;margin-top:0.5rem;}
+</style>
 </head>
 
 <body>
 
 <header class="header">
-    <div class="logo">
-        <i class="fas fa-shield-alt"></i>
-        PurposePartner
-    </div>
-    <div class="user-info">
-        <div class="user-avatar" id="user-avatar">U</div>
-        <span id="user-name">User</span>
-        <button class="logout-btn" id="logoutBtn">
-            <i class="fas fa-sign-out-alt"></i> Logout
-        </button>
-    </div>
+<div><i class="fas fa-shield-alt"></i> PurposePartner</div>
+<div class="user-info">
+<div class="user-avatar" id="user-avatar">U</div>
+<span id="user-name">User</span>
+<button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+</div>
 </header>
 
 <div class="container">
-    <section class="welcome-section">
-        <h1 id="welcome-name">Welcome!</h1>
-        <p>You are making a difference in people's lives through accountability and encouragement.</p>
-    </section>
+
+<section class="welcome-section">
+<h1 id="welcome-name">Welcome!</h1>
+<p>You are making a difference in people's lives through accountability and encouragement.</p>
+</section>
+
+<div class="stats-grid">
+<div class="stat-card">
+<h3><i class="fas fa-users"></i> Partners Supported</h3>
+<div class="number">0</div>
+</div>
+<div class="stat-card">
+<h3><i class="fas fa-chart-line"></i> Encouragements Sent</h3>
+<div class="number">0</div>
+</div>
+</div>
+
+<section class="features-grid">
+
+<div class="feature-item">
+<i class="fas fa-bell"></i>
+<h4>Notifications</h4>
+<button class="btn">View Notifications</button>
+</div>
+
+<div class="feature-item">
+<i class="fas fa-chart-bar"></i>
+<h4>Statistics</h4>
+<button class="btn">View Stats</button>
+</div>
+
+<div class="feature-item">
+<i class="fas fa-link"></i>
+<h4>Add Partner Code</h4>
+<button class="btn">Connect Partner</button>
+</div>
+
+</section>
 </div>
 
 <script type="module">
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyC4HhpXcYdGhvFRIz4IHksilgnMnRDbiS8",
-    authDomain: "victory-fb944.firebaseapp.com",
-    projectId: "victory-fb944",
-    storageBucket: "victory-fb944.firebasestorage.app",
-    messagingSenderId: "650310438797",
-    appId: "1:650310438797:web:c0bd9a1caaa6093d5137c4"
+apiKey:"AIzaSyC4HhpXcYdGhvFRIz4IHksilgnMnRDbiS8",
+authDomain:"victory-fb944.firebaseapp.com",
+projectId:"victory-fb944",
+storageBucket:"victory-fb944.firebasestorage.app",
+messagingSenderId:"650310438797",
+appId:"1:650310438797:web:c0bd9a1caaa6093d5137c4"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-// DASHBOARD AUTH GUARD
-onAuthStateChanged(auth, (user) => {
-
-    if (!user) {
-        window.location.href = "login.html";
-        return;
-    }
-
-    const displayName = user.displayName || user.email.split("@")[0];
-
-    localStorage.setItem("victory_current_user", JSON.stringify({
-        uid: user.uid,
-        email: user.email,
-        displayName: displayName
-    }));
-
-    document.getElementById("user-name").textContent = displayName;
-    document.getElementById("user-avatar").textContent = displayName.charAt(0).toUpperCase();
-    document.getElementById("welcome-name").textContent =
-        "Thank you for being an accountability Hero, " + displayName + ".";
+onAuthStateChanged(auth,(user)=>{
+if(!user){window.location.href="login.html";return;}
+const name=user.displayName||user.email.split("@")[0];
+localStorage.setItem("victory_current_user",JSON.stringify({
+uid:user.uid,email:user.email,displayName:name
+}));
+document.getElementById("user-name").textContent=name;
+document.getElementById("user-avatar").textContent=name.charAt(0).toUpperCase();
+document.getElementById("welcome-name").textContent="Thank you for being an accountability Hero, "+name+".";
 });
 
-// LOGOUT
-document.getElementById("logoutBtn").addEventListener("click", async () => {
-    await signOut(auth);
-    localStorage.removeItem("victory_current_user");
-    window.location.href = "login.html";
+document.getElementById("logoutBtn").addEventListener("click",async()=>{
+await signOut(auth);
+localStorage.removeItem("victory_current_user");
+window.location.href="login.html";
 });
-
 </script>
 
 </body>
