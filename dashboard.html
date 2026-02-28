@@ -60,11 +60,11 @@ body{font-family:'Segoe UI',Tahoma,Verdana,sans-serif;background:var(--light-col
 <div class="stats-grid">
 <div class="stat-card">
 <h3><i class="fas fa-users"></i> Partners Supported</h3>
-<div class="number">0</div>
+<div class="number" id="partners-count">0</div>
 </div>
 <div class="stat-card">
 <h3><i class="fas fa-chart-line"></i> Encouragements Sent</h3>
-<div class="number">0</div>
+<div class="number" id="encouragements-count">0</div>
 </div>
 </div>
 
@@ -93,7 +93,20 @@ body{font-family:'Segoe UI',Tahoma,Verdana,sans-serif;background:var(--light-col
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js"; 
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  collection,
+  getDocs,
+  addDoc,
+  updateDoc,
+  query,
+  where,
+  onSnapshot
+    } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
 const firebaseConfig = {
 apiKey:"AIzaSyC4HhpXcYdGhvFRIz4IHksilgnMnRDbiS8",
@@ -106,23 +119,77 @@ appId:"1:650310438797:web:c0bd9a1caaa6093d5137c4"
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
 
-onAuthStateChanged(auth,(user)=>{
-if(!user){window.location.href="login.html";return;}
-const name=user.displayName||user.email.split("@")[0];
-localStorage.setItem("victory_current_user",JSON.stringify({
-uid:user.uid,email:user.email,displayName:name
-}));
-document.getElementById("user-name").textContent=name;
-document.getElementById("user-avatar").textContent=name.charAt(0).toUpperCase();
-document.getElementById("welcome-name").textContent="Thank you for being an accountability Hero, "+name+".";
+onAuthStateChanged(auth, async (user) => {
+
+  if (!user) {
+    window.location.href = "login.html";
+    return;
+  }
+
+  const userRef = doc(db, "users", user.uid);
+  const userSnap = await getDoc(userRef);
+
+  // If user document does NOT exist → create it
+  if (!userSnap.exists()) {
+    await setDoc(userRef, {
+      uid: user.uid,
+      email: user.email,
+      displayName: user.displayName || user.email.split("@")[0],
+      createdAt: new Date(),
+      partnersCount: 0,
+      encouragementsSent: 0
+    });
+  }
+
+  // Read latest user data
+  const freshUserSnap = await getDoc(userRef);
+  const userData = freshUserSnap.data();
+
+  const name = userData.displayName;
+
+  document.getElementById("user-name").textContent = name;
+  document.getElementById("user-avatar").textContent = name.charAt(0).toUpperCase();
+  document.getElementById("welcome-name").textContent =
+    "Thank you for being an accountability Hero, " + name + ".";
+     //  Real-time notification listener
+const notificationsRef = collection(db, "users", user.uid, "notifications");
+
+onSnapshot(notificationsRef, (snapshot) => {
+  let unreadCount = 0;
+
+  snapshot.forEach((doc) => {
+    if (!doc.data().read) unreadCount++;
+  });
+
+  const notifBadge = document.getElementById("notification-count");
+
+  if (notifBadge) {
+    notifBadge.textContent = unreadCount;
+    notifBadge.style.display = unreadCount > 0 ? "block" : "none";
+  }
+});
+     //  Store FCM token safely if available
+if (window.currentFcmToken) {
+  await updateDoc(doc(db, "users", user.uid), {
+    fcmToken: window.currentFcmToken
+  });
+}
+    //  Update statistics cards safely
+const partnersElement = document.getElementById("partners-count");
+const encouragementsElement = document.getElementById("encouragements-count");
+
+if (partnersElement) {
+  partnersElement.textContent = userData.partnersCount || 0;
+}
+
+if (encouragementsElement) {
+  encouragementsElement.textContent = userData.encouragementsSent || 0;
+}
+
 });
 
-document.getElementById("logoutBtn").addEventListener("click",async()=>{
-await signOut(auth);
-localStorage.removeItem("victory_current_user");
-window.location.href="login.html";
-});
 </script>
 
 </body>
