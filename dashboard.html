@@ -307,42 +307,10 @@
 
     <!-- Firebase SDK for Auth + Firestore -->
     <script type="module">
-        // Constants at the top (recommended)
-        const FIREBASE_API_KEY = "AIzaSyC4HhpXcYdGhvFRIz4IHksilgnMnRDbiS8";
-        const projectId = "victory-fb944";
-        
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
-        // Firebase SDK imports - DISABLED for phone to prevent 403 errors
-        // import {
-        //     getAuth,
-        //     signInWithEmailAndPassword,
-        //     createUserWithEmailAndPassword,
-        //     signInWithPopup,
-        //     GoogleAuthProvider,
-        //     signOut as firebaseSignOut,
-        //     onAuthStateChanged,
-        //     updateProfile
-        // } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
-        // import {
-        //     getFirestore,
-        //     collection,
-        //     doc,
-        //     addDoc,
-        //     getDoc,
-        //     getDocs,
-        //     updateDoc,
-        //     query,
-        //     where,
-        //     orderBy,
-        //     limit,
-        //     onSnapshot,
-        //     deleteDoc,
-        //     setDoc,
-        //     serverTimestamp
-        // } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
-        // import { getToken } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging.js';
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-        // Firebase config
         const firebaseConfig = {
             apiKey: "AIzaSyC4HhpXcYdGhvFRIz4IHksilgnMnRDbiS8",
             authDomain: "victory-fb944.firebaseapp.com",
@@ -352,42 +320,10 @@
             appId: "1:650310438797:web:c0bd9a1caaa6093d5137c4"
         };
 
-        // Initialize Firebase - DISABLED for phone to prevent 403 errors
-        // const app = initializeApp(firebaseConfig);
-        // const auth = getAuth(app);
-        // const db = getFirestore(app);
-        // const googleProvider = new GoogleAuthProvider();
-
-        // Make globally available
-        // window.auth = auth;
-        // window.db = db;
-        // window.googleProvider = googleProvider;
-        // Mock Firebase functions since SDK is disabled
-        window.firebaseAuth = {
-            signInWithEmailAndPassword: () => Promise.reject(new Error('Firebase auth disabled')),
-            createUserWithEmailAndPassword: () => Promise.reject(new Error('Firebase auth disabled')),
-            signInWithPopup: () => Promise.reject(new Error('Firebase auth disabled')),
-            firebaseSignOut: () => Promise.resolve(),
-            onAuthStateChanged: () => () => {},
-            updateProfile: () => Promise.resolve(),
-            GoogleAuthProvider: class {}
-        };
-        window.firestore = { 
-            collection: () => ({}),
-            doc: () => ({}),
-            addDoc: () => Promise.reject(new Error('Firebase disabled')),
-            getDoc: () => Promise.reject(new Error('Firebase disabled')),
-            getDocs: () => Promise.reject(new Error('Firebase disabled')),
-            updateDoc: () => Promise.reject(new Error('Firebase disabled')),
-            query: () => ({}),
-            where: () => ({}),
-            orderBy: () => ({}),
-            limit: () => ({}),
-            onSnapshot: () => () => {},
-            deleteDoc: () => Promise.reject(new Error('Firebase disabled')),
-            setDoc: () => Promise.reject(new Error('Firebase disabled')),
-            serverTimestamp: () => new Date()
-        };
+        // 🔥 Initialize Firebase FIRST
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
         
         // Signal that Firebase is ready
         window.firebaseReady = true;
@@ -584,11 +520,8 @@
         // FIREBASE AUTH SYNC (SAFE MODE)
         // ===============================
 
-        import { getAuth, onAuthStateChanged } from 
-        "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
         // Firebase app is already initialized above in your file
-        const auth = getAuth();
+        // auth is already available from above
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
@@ -911,8 +844,5 @@
             alert('Biblical Resources coming soon!\n\nAccess curated Bible verses and devotionals for encouragement and strength.');
         }
     </script>
-    
-    <!-- Notifications Module -->
-    <script type="module" src="./pwa-notifications.js"></script>
 </body>
 </html>
