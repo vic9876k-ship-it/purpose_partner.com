@@ -818,10 +818,8 @@
 
         // Logout button event listener
         document.getElementById("logoutBtn").addEventListener("click", async () => {
-            // Properly sign out using Firebase Auth
-            await signOut(auth);
-            // Redirect safely to login page
-            window.location.href = "login.html";
+            await signOut(auth); // Sign out using Firebase Auth
+            window.location.href = "index.html"; // Redirect to index page
         });
 
         // Dashboard functions
