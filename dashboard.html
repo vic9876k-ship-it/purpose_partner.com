@@ -205,7 +205,7 @@
         <div class="user-info">
             <div class="user-avatar" id="user-avatar">U</div>
             <span id="user-name">User</span>
-            <button class="logout-btn" onclick="handleSignOut()">
+            <button class="logout-btn" id="logoutBtn">
                 <i class="fas fa-sign-out-alt"></i> Logout
             </button>
         </div>
@@ -814,6 +814,14 @@
             });
 
             console.log('Dashboard buttons initialized:', featureButtons.length);
+        });
+
+        // Logout button event listener
+        document.getElementById("logoutBtn").addEventListener("click", async () => {
+            // Properly sign out using Firebase Auth
+            await signOut(auth);
+            // Redirect safely to login page
+            window.location.href = "login.html";
         });
 
         // Dashboard functions
