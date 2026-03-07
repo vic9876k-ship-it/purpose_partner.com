@@ -324,28 +324,11 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        
-        // Signal that Firebase is ready
-        window.firebaseReady = true;
-        console.log('Firebase initialized and ready');
 
-        // Simple authentication for dashboard - ENABLED for testing
         onAuthStateChanged(auth, (user) => {
             if (!user) {
-                window.location.href = 'index.html';
-                return;
+                window.location.href = "index.html";
             }
-            
-            // Update UI
-            document.getElementById('user-name').textContent = user.displayName || user.email;
-            document.getElementById('user-avatar').textContent = (user.displayName || user.email).charAt(0).toUpperCase();
-            document.getElementById('welcome-name').textContent = `Welcome, ${user.displayName || 'Partner'}!`;
-            
-            // Load dashboard data
-            loadDashboardData(user);
-            
-            // Start notification listener
-            listenForNotifications();
         });
 
         // Simple logout - DISABLED for phone to prevent 403 errors
@@ -522,26 +505,6 @@
 
         // Firebase app is already initialized above in your file
         // auth is already available from above
-
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                console.log("Firebase user detected:", user.email);
-
-                const userObject = {
-                    uid: user.uid,
-                    email: user.email,
-                    displayName: user.displayName || user.email.split("@")[0]
-                };
-
-                localStorage.setItem(
-                    "victory_current_user",
-                    JSON.stringify(userObject)
-                );
-
-            } else {
-                console.log("No Firebase user session");
-            }
-        });
 
         // 🔧 FINAL CORRECT PATCH
         async function updateFcmToken(code, fcmToken, apiKey) {
