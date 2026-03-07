@@ -258,6 +258,8 @@
         const db = getFirestore(app);
 
         onAuthStateChanged(auth, (user) => {
+            console.log("Auth check fired", user);
+            
             // Only redirect if user is explicitly null (not undefined, not loading)
             if (user === null) {
                 console.log("No authenticated user found, redirecting to index.html");
