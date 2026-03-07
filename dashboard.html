@@ -326,15 +326,14 @@
         const db = getFirestore(app);
 
         onAuthStateChanged(auth, (user) => {
-            // Wait for Firebase to fully initialize
-            if (user === undefined) return;
-            
-            if (!user) {
+            // Only redirect if user is explicitly null (not undefined, not loading)
+            if (user === null) {
                 console.log("No authenticated user found, redirecting to index.html");
                 window.location.href = "index.html";
-            } else {
+            } else if (user) {
                 console.log("User authenticated successfully:", user.email);
             }
+            // If user is undefined, Firebase is still loading - do nothing
         });
 
         // Simple logout - DISABLED for phone to prevent 403 errors
