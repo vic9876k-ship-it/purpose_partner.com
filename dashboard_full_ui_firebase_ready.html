@@ -240,7 +240,7 @@
     <!-- Firebase SDK for Auth + Firestore -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
         import { getFirestore } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -257,17 +257,19 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        // Set persistence to keep user logged in across page reloads
+        await setPersistence(auth, browserLocalPersistence);
+
         onAuthStateChanged(auth, (user) => {
             console.log("Auth check fired", user);
-            
-            // Only redirect if user is explicitly null (not undefined, not loading)
-            if (user === null) {
-                console.log("No authenticated user found, redirecting to index.html");
-                window.location.href = "index.html";
-            } else if (user) {
-                console.log("User authenticated successfully:", user.email);
+
+            if (user) {
+                console.log("User authenticated:", user.uid);
+                return;
             }
-            // If user is undefined, Firebase is still loading - do nothing
+
+            console.log("No authenticated user.");
+            window.location.href = "index.html";
         });
 
         // Logout button event listener
