@@ -611,11 +611,11 @@
             const code = localStorage.getItem('pairingCode');
             if (!code) return;
 
-            // Use REST API to listen for public notifications
+            // Use REST API to listen for blocked events
             const pollForNotifications = async () => {
                 try {
-                    const url = `https://firestore.googleapis.com/v1/projects/victory-fb944/databases/(default)/documents/publicNotifications`;
-                    const response = await fetch(`${url}?where=code&whereValue=${code}&orderBy=timestamp&direction=desc`);
+                    const url = `https://firestore.googleapis.com/v1/projects/victory-fb944/databases/(default)/documents/blockedEvents`;
+                    const response = await fetch(`${url}?orderBy=timestamp&direction=desc`);
                     
                     if (!response.ok) {
                         console.error('Failed to fetch notifications:', response.status);
