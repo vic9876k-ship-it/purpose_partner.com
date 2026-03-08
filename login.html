@@ -186,52 +186,26 @@
         </div>
     </div>
 
-    <script>
-        // Local Authentication System
-        class LocalAuth {
-            static register(email, password, displayName) {
-                const users = JSON.parse(localStorage.getItem('victory_users') || '[]');
-                
-                // Check if user already exists
-                if (users.find(u => u.email === email)) {
-                    throw new Error('User already exists');
-                }
+    <!-- Firebase SDK for Auth -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 
-                const user = {
-                    id: Date.now().toString(),
-                    email,
-                    password, // In production, this should be hashed
-                    displayName,
-                    createdAt: new Date().toISOString()
-                };
+        const firebaseConfig = {
+            apiKey: "AIzaSyC4HhpXcYdGhvFRIz4IHksilgnMnRDbiS8",
+            authDomain: "victory-fb944.firebaseapp.com",
+            projectId: "victory-fb944",
+            storageBucket: "victory-fb944.firebasestorage.app",
+            messagingSenderId: "650310438797",
+            appId: "1:650310438797:web:c0bd9a1caaa6093d5137c4"
+        };
 
-                users.push(user);
-                localStorage.setItem('victory_users', JSON.stringify(users));
-                return user;
-            }
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
 
-            static login(email, password) {
-                const users = JSON.parse(localStorage.getItem('victory_users') || '[]');
-                const user = users.find(u => u.email === email && u.password === password);
-                
-                if (!user) {
-                    throw new Error('Invalid email or password');
-                }
-
-                // Store current user
-                localStorage.setItem('victory_current_user', JSON.stringify(user));
-                return user;
-            }
-
-            static logout() {
-                localStorage.removeItem('victory_current_user');
-            }
-
-            static getCurrentUser() {
-                const user = localStorage.getItem('victory_current_user');
-                return user ? JSON.parse(user) : null;
-            }
-        }
+        // Set persistence to keep user logged in across page reloads
+        await setPersistence(auth, browserLocalPersistence);
 
         // Login form
         document.getElementById('signin-form').addEventListener('submit', async (e) => {
@@ -248,7 +222,8 @@
             signinBtn.disabled = true;
 
             try {
-                LocalAuth.login(email, password);
+                // Sign in with Firebase Auth
+                await signInWithEmailAndPassword(auth, email, password);
                 window.location.href = 'dashboard.html';
             } catch (error) {
                 errorDiv.textContent = error.message;
