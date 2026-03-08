@@ -189,7 +189,7 @@
     <!-- Firebase SDK for Auth -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, setPersistence, browserLocalPersistence, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyC4HhpXcYdGhvFRIz4IHksilgnMnRDbiS8",
@@ -207,6 +207,14 @@
         // Set persistence to keep user logged in across page reloads
         await setPersistence(auth, browserLocalPersistence);
 
+        // Listen for auth state changes - redirect after Firebase confirms login
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                console.log("User logged in, redirecting to dashboard");
+                window.location.href = "dashboard.html";
+            }
+        });
+
         // Login form
         document.getElementById('signin-form').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -222,9 +230,9 @@
             signinBtn.disabled = true;
 
             try {
-                // Sign in with Firebase Auth
+                // Sign in with Firebase Auth - don't redirect here, let onAuthStateChanged handle it
                 await signInWithEmailAndPassword(auth, email, password);
-                window.location.href = 'dashboard.html';
+                console.log("Firebase sign-in successful, waiting for auth state confirmation...");
             } catch (error) {
                 errorDiv.textContent = error.message;
                 errorDiv.style.display = 'block';
